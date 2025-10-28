@@ -1,4 +1,6 @@
-# **InferaDB: The Inference Database for Fine-Grained Authorization**
+# InferaDB
+
+__The Inference Database for Fine-Grained Authorization__
 
 Modern applications demand fine-grained, contextual authorization systems capable of enforcing access control across distributed, multi-tenant, and multi-region environments. Traditional role-based (RBAC) and attribute-based (ABAC) systems fail to scale with the complexity of today’s ecosystems, where relationships, hierarchies, and dynamic policies define access semantics.
 
