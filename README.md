@@ -117,25 +117,195 @@ permission view = viewer or (is_public == true and time_now < resource.expiry)
 
 ## **6. WASM Policy Modules**
 
-To support advanced, programmable logic safely, InferaDB introduces **WASM Policy Modules** — lightweight, tenant-scoped logic extensions executed within PDP cells.
+### **Overview**
 
-### **Example**
+While declarative policies (defined in the Infera Policy Language) cover most authorization logic, real-world access control often depends on **contextual or domain-specific logic** — such as time of day, subscription tiers, workflow states, or third-party compliance rules.
 
-```typescript
-// module.can_edit.ts
-export function can_edit(context, resource, subject) {
-  return resource.status === "active" && subject.role === "editor";
+To support these dynamic conditions without sacrificing safety or consistency, InferaDB introduces **WASM Policy Modules**: lightweight, sandboxed, tenant-scoped logic extensions that execute **in-process** within each **Policy Decision Point (PDP)** cell.
+
+Each module is:
+
+* Compiled to **WebAssembly (WASM)** for portability and determinism.
+* **Signed and versioned** per tenant to ensure immutability and auditability.
+* Executed under strict CPU and memory constraints (e.g., 5ms and 32MB).
+* Invoked by IPL (Infera Policy Language) permissions through the `module` namespace.
+
+### **Real-World Example: Enterprise Document Sharing Platform**
+
+Consider a platform like **“AtlasDocs”**, an enterprise SaaS for secure document collaboration.
+
+Access rules must adapt based on:
+
+* **User role** within an organization (e.g., *editor*, *viewer*, *admin*).
+* **Document classification level** (*confidential*, *internal*, *public*).
+* **Contextual factors**, such as whether the user is accessing from a corporate network, and whether the document is currently under legal hold.
+
+Declarative rules can model static relationships like `editor` or `viewer`, but the contextual checks — such as verifying IP range or legal hold state — are better handled by a WASM module.
+
+### **Step 1 — Declarative Policy**
+
+```praxis
+entity document {
+  relation viewer: user | group#member
+  relation editor: user | group#member
+  relation owner: user
+
+  attribute classification: string
+  attribute legal_hold: bool
+
+  permission view = 
+      viewer 
+      or editor 
+      or (module.check_context(context, resource, subject) == true)
+  
+  permission edit = 
+      editor 
+      and module.can_edit(context, resource, subject)
 }
 ```
 
-Modules are:
+The policy defines `view` and `edit` permissions that defer advanced context checks to the module.
 
-* **Compiled to WASM** and signed per tenant.
-* **Executed deterministically** with strict CPU/memory limits.
-* **Sandboxed:** No I/O, no network access.
-* **Versioned and auditable:** Each invocation is logged with its version hash.
+### **Step 2 — WASM Module Implementation**
 
-This design combines the safety of declarative policies with the expressiveness of procedural extensions.
+Developers can write modules in **Rust** or **TypeScript** and compile to WASM.
+Below is an example implemented in **Rust**, leveraging the safety guarantees of the language while remaining fully deterministic.
+
+```rust
+// src/lib.rs
+
+use infera_sdk::{Context, Resource, Subject};
+
+/// Checks if a user can view a document based on contextual attributes.
+/// - Only allow access if the user is within a trusted IP range or the document
+///   is not marked confidential.
+/// - Deny access entirely if the document is under legal hold.
+#[no_mangle]
+pub extern "C" fn check_context(
+    ctx: Context,
+    resource: Resource,
+    subject: Subject,
+) -> bool {
+    let user_ip = ctx.get("ip_address").unwrap_or_default();
+    let trusted_ips = vec!["10.0.0.0/8", "192.168.0.0/16"];
+
+    // If document is under legal hold, deny all access.
+    if resource.get_bool("legal_hold").unwrap_or(false) {
+        return false;
+    }
+
+    // Allow internal users or non-confidential documents.
+    let classification = resource.get_str("classification").unwrap_or("public");
+    if classification != "confidential" || trusted_ips.iter().any(|r| ip_in_range(&user_ip, r)) {
+        return true;
+    }
+
+    false
+}
+
+fn ip_in_range(ip: &str, cidr: &str) -> bool {
+    // Simplified IP check for example purposes.
+    ip.starts_with("10.") || ip.starts_with("192.168.")
+}
+```
+
+When compiled to WASM, this module will:
+
+* Accept contextual data (e.g., IP address, session metadata).
+* Read document attributes like `classification` and `legal_hold`.
+* Evaluate a custom logic path that would be cumbersome or unsafe to express in a pure DSL.
+
+### **Step 3 — Module Registration and Versioning**
+
+Developers publish the module using the **Infera CLI**:
+
+```bash
+infera module publish ./target/wasm32-unknown-unknown/release/atlasdocs_context.wasm \
+  --tenant atlasdocs \
+  --name context-check \
+  --version v1.3.0
+```
+
+The Control Plane verifies:
+
+1. The module’s **signature** (developer or tenant key).
+2. Its **determinism guarantee** (static analysis of WASM imports).
+3. Its **metadata manifest** (declared exports, version, and permissions).
+
+Once validated, the PDP cells for that tenant fetch and cache the compiled bytecode.
+
+### **Step 4 — Execution Flow at Runtime**
+
+1. A client SDK issues a policy check via the AuthZEN API:
+
+   ```json
+   {
+     "subject": "user:evan",
+     "resource": "document:123",
+     "action": "view",
+     "context": { "ip_address": "10.15.2.45" }
+   }
+   ```
+
+2. The PDP Cell retrieves the relevant tuples and policy definitions.
+
+3. The policy evaluator executes the declarative logic (`viewer or editor or module.check_context`).
+
+4. The WASM runtime safely invokes `check_context()`.
+
+5. A decision is returned, including trace metadata and module version.
+
+Response example:
+
+```json
+{
+  "allowed": true,
+  "revision": "r85fj2",
+  "policy_version": "v1.3.0",
+  "module": "context-check",
+  "explanation": {
+    "path": [
+      "permission:view",
+      "module.check_context → true"
+    ]
+  }
+}
+```
+
+### **Step 5 — Benefits**
+
+| Benefit           | Description                                                                                                                       |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Safety**        | WASM ensures deterministic, isolated execution. No I/O or network calls.                                                          |
+| **Flexibility**   | Developers can encode domain-specific logic in any language that compiles to WASM.                                                |
+| **Auditability**  | Every module invocation is logged with version, inputs, and outputs.                                                              |
+| **Performance**   | Module execution is in-process, adding <2ms overhead per check.                                                                   |
+| **Extensibility** | Allows domain engineers (e.g., compliance or risk teams) to define context-sensitive rules without modifying the core policy DSL. |
+
+### **Step 6 — Versioning and Rollback**
+
+Each module version is immutable once published.
+To upgrade a rule safely, developers can branch their policy, publish a new module version, and perform a **simulation** before merge:
+
+```bash
+infera module publish ./atlasdocs_context_v2.wasm --version v1.4.0
+infera simulate --policy branch:feature/legal-hold
+infera merge feature/legal-hold
+```
+
+This workflow (inspired by **PlanetScale’s branching model**) provides **safe, reversible policy evolution**.
+
+### **Step 7 — Security and Governance**
+
+* **Module Signing:** Each WASM file must include a detached signature generated with the tenant’s private key.
+* **Static Analysis:** The Control Plane validates all WASM imports to ensure pure determinism (no random, time, or I/O dependencies).
+* **Sandbox Constraints:** CPU, memory, and stack usage limits enforced by the PDP runtime.
+* **Version Pinnings:** Policies always reference an explicit module version — no implicit upgrades.
+
+### **Summary**
+
+WASM Policy Modules make InferaDB not just a relationship graph, but a **programmable reasoning system**.
+They enable organizations to express nuanced, real-world logic — such as conditional access, risk-based checks, or compliance enforcement — while maintaining **strong consistency, safety, and auditability**.
 
 ## **7. Consistency Model**
 
