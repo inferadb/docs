@@ -59,7 +59,7 @@ This architecture ensures predictable performance, fault isolation, and causal c
 ```plaintext
 ┌──────────────────────────────────────────────────────────┐
 │                   Developer Layer                        │
-│  CLI • SDKs • Dashboard (Next.js)                        │
+│               CLI • SDKs • Dashboard                     │
 └───────────────────┬───────────────────────────────────────┘
                     │
                     ▼
@@ -407,7 +407,7 @@ The **Infera Dashboard** allows developers to visualize schemas, simulate access
 inferadb/
 ├── server/      # Rust PDP
 ├── api/         # TypeScript control plane
-├── dashboard/   # Next.js dashboard
+├── dashboard/   # Dashboard
 ├── docker/      # Compose files
 ├── k8s/         # Kubernetes manifests
 ├── infra/       # Terraform, Helm, Tilt
