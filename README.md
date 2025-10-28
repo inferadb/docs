@@ -285,7 +285,7 @@ infera simulate --policy branch:feature/legal-hold
 infera merge feature/legal-hold
 ```
 
-This workflow (inspired by **PlanetScale’s branching model**) provides **safe, reversible policy evolution**.
+This workflow provides **safe, reversible policy evolution**.
 
 ### **Step 7 — Security and Governance**
 
@@ -314,7 +314,7 @@ Every authorization decision references a **revision token**, representing a con
 
 ## **8. Scalability and Performance**
 
-Inspired by **SpacetimeDB**, each PDP cell combines local tuple storage with co-located inference computation, achieving sub-10ms median latency even under multi-tenant workloads.
+Each PDP cell combines local tuple storage with co-located inference computation, achieving sub-10ms median latency even under multi-tenant workloads.
 
 ### **Scaling Mechanisms**
 
