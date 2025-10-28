@@ -1,0 +1,2 @@
+# whitepaper
+InferaDB Technical Whitepaper
