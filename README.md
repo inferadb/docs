@@ -10,8 +10,6 @@ Built in **Rust** for low-latency and strong consistency, and orchestrated in **
 
 ## **1. Motivation**
 
-### **1.1 The Challenge of Modern Authorization**
-
 Authorization is one of the most critical yet under-engineered components of modern distributed systems. Developers often hardcode access rules, deploy unverified policy code, or rely on brittle role-based systems that collapse under the complexity of real-world resource graphs.
 Common challenges include:
 
@@ -22,14 +20,6 @@ Common challenges include:
 * Lack of standardization for interoperability and policy exchange.
 
 **InferaDB** addresses these challenges by modeling authorization as a graph of relationships and logical inferences, not just static roles or attributes.
-
-### **1.2 The Opportunity**
-
-Systems like **Google Zanzibar** proved that globally consistent, fine-grained authorization is possible. However, existing open-source implementations such as **AuthZed (SpiceDB)** and **OpenFGA** focus narrowly on tuple-based access without extending into executable policy logic or inference reasoning. Meanwhile, tools like **Oso** introduce embedded logic engines but lack the distributed consistency model required for production-scale access control.
-
-InferaDB bridges these gaps with a single mission:
-
-> **To provide developers with a strongly consistent, inference-driven authorization system that combines logic, data, and standardization into a unified model.**
 
 ## **2. Design Philosophy**
 
@@ -414,26 +404,7 @@ inferadb/
 └── config/      # Shared configuration
 ```
 
-## **13. Comparison to Related Systems**
-
-| System                  | Description                                 | Key Differences                                                              |
-| ----------------------- | ------------------------------------------- | ---------------------------------------------------------------------------- |
-| **Google Zanzibar [1]** | Global ReBAC model with strong consistency. | InferaDB builds upon this model but adds policy logic and modular inference. |
-| **AuthZed (SpiceDB)**   | Zanzibar-style open-source engine.          | InferaDB adds inference DSL, WASM runtime, and AuthZEN compliance.           |
-| **OpenFGA**             | Simplified Zanzibar implementation by Meta. | InferaDB offers stronger policy reasoning and modularity.                    |
-| **Oso**                 | Embedded policy engine (Polar language).    | InferaDB is distributed, consistent, and language-agnostic.                  |
-| **AuthZEN**             | Open standard for authorization APIs.       | InferaDB natively supports and extends the AuthZEN API model.                |
-
-## **14. Roadmap**
-
-| Phase          | Focus            | Description                                             |
-| -------------- | ---------------- | ------------------------------------------------------- |
-| **v0.1 (MVP)** | Core PDP         | Strong consistency, IPL DSL, AuthZEN API.               |
-| **v1.0**       | Production-ready | Multi-tenant architecture, WASM runtime, audit logs.    |
-| **v1.5**       | Multi-region     | Causal replication, edge PDPs, event streaming.         |
-| **v2.0**       | Enterprise       | Policy analytics, attestations, managed cloud offering. |
-
-## **15. Conclusion**
+## **13. Conclusion**
 
 InferaDB represents a next-generation approach to authorization — where policies are logic, decisions are proofs, and relationships form the foundation of access reasoning.
 By combining the consistency of Zanzibar, the interoperability of AuthZEN, and the composability of WASM-based modules, InferaDB establishes a new standard for trust, transparency, and developer experience in distributed access control.
