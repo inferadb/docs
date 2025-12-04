@@ -1,6 +1,6 @@
 # InferaDB
 
-__The Inference Database for Fine-Grained Authorization__
+**The Inference Database for Fine-Grained Authorization**
 
 Modern applications demand fine-grained, contextual authorization systems capable of enforcing access control across distributed, multi-tenant, and multi-region environments. Traditional role-based (RBAC) and attribute-based (ABAC) systems fail to scale with the complexity of today’s ecosystems, where relationships, hierarchies, and dynamic policies define access semantics.
 
@@ -8,20 +8,20 @@ Modern applications demand fine-grained, contextual authorization systems capabl
 
 Built in **Rust** for low-latency and strong consistency, and orchestrated in **TypeScript** for developer accessibility, InferaDB delivers authorization that is **explainable, auditable, and composable** — by design.
 
-## **1. Motivation**
+## Motivation
 
 Authorization is one of the most critical yet under-engineered components of modern distributed systems. Developers often hardcode access rules, deploy unverified policy code, or rely on brittle role-based systems that collapse under the complexity of real-world resource graphs.
 Common challenges include:
 
-* Inconsistent authorization logic across services.
-* Poor visibility and auditability of decisions.
-* Scaling decision latency under high RPS workloads.
-* Difficulty modeling relationships between entities and actions.
-* Lack of standardization for interoperability and policy exchange.
+- Inconsistent authorization logic across services.
+- Poor visibility and auditability of decisions.
+- Scaling decision latency under high RPS workloads.
+- Difficulty modeling relationships between entities and actions.
+- Lack of standardization for interoperability and policy exchange.
 
 **InferaDB** addresses these challenges by modeling authorization as a graph of relationships and logical inferences, not just static roles or attributes.
 
-## **2. Design Philosophy**
+## Design Philosophy
 
 The design of InferaDB is guided by five core principles:
 
@@ -33,53 +33,81 @@ The design of InferaDB is guided by five core principles:
 | **Developer-Centric Experience** | Authorization should be understandable, testable, and observable. Tooling matters as much as throughput.                                                        |
 | **Transparent Trust**            | Every decision is auditable, signed, and replayable. Determinism is verifiable through revision tokens and tamper-evident logs.                                 |
 
-## **3. System Overview**
+## System Overview
 
 InferaDB consists of two core planes:
 
-* **Control Plane:** Manages tenants, schemas, policies, and replication topology.
-* **Data Plane:** Executes authorization checks in isolated, per-tenant **PDP (Policy Decision Point)** cells that co-locate computation with data.
+- **Control Plane:** Manages tenants, schemas, policies, and replication topology.
+- **Data Plane:** Executes authorization checks in isolated, per-tenant **PDP (Policy Decision Point)** cells that co-locate computation with data.
 
 This architecture ensures predictable performance, fault isolation, and causal consistency across globally distributed deployments.
 
-## **4. Architecture**
+## Architecture
 
-### **4.1 High-Level Architecture**
+### High-Level Architecture
 
-```plaintext
-┌──────────────────────────────────────────────────────────┐
-│                   Developer Layer                        │
-│               CLI • SDKs • Dashboard                     │
-└───────────────────┬───────────────────────────────────────┘
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│                   Control Plane                          │
-│  Tenant Registry • Policy Branch Manager • Schema Store  │
-│  Module Registry • Audit Log • Replication Orchestrator  │
-└───────────────────┬───────────────────────────────────────┘
-                    │
-        ┌───────────┴───────────┬───────────┬───────────┐
-        ▼                       ▼           ▼           ▼
-┌────────────────┐   ┌────────────────┐   ┌────────────────┐
-│ PDP Cell (A)   │   │ PDP Cell (B)   │   │ PDP Cell (C)   │
-│  • Tuple Store │   │  • Tuple Store │   │  • Tuple Store │
-│  • Cache       │   │  • Cache       │   │  • Cache       │
-│  • Evaluator   │   │  • Evaluator   │   │  • Evaluator   │
-│  • WASM Sandbox│   │  • WASM Sandbox│   │  • WASM Sandbox│
-└────────────────┘   └────────────────┘   └────────────────┘
-        │                       │           │
-        ▼                       ▼           ▼
-         ───────────► Event Bus / Replicator ◄────────────
+```mermaid
+graph TD
+    subgraph Developer["Developer Layer"]
+        CLI[CLI]
+        SDKs[SDKs]
+        Dashboard[Dashboard]
+    end
+
+    subgraph Control["Control Plane"]
+        TR[Tenant Registry]
+        PBM[Policy Branch Manager]
+        SS[Schema Store]
+        MR[Module Registry]
+        AL[Audit Log]
+        RO[Replication Orchestrator]
+    end
+
+    subgraph DataPlane["Data Plane"]
+        subgraph CellA["PDP Cell A"]
+            TSA[Tuple Store]
+            CA[Cache]
+            EA[Evaluator]
+            WA[WASM Sandbox]
+        end
+
+        subgraph CellB["PDP Cell B"]
+            TSB[Tuple Store]
+            CB[Cache]
+            EB[Evaluator]
+            WB[WASM Sandbox]
+        end
+
+        subgraph CellC["PDP Cell C"]
+            TSC[Tuple Store]
+            CC[Cache]
+            EC[Evaluator]
+            WC[WASM Sandbox]
+        end
+    end
+
+    EventBus[Event Bus / Replicator]
+
+    Developer --> Control
+    Control --> CellA
+    Control --> CellB
+    Control --> CellC
+    CellA --> EventBus
+    CellB --> EventBus
+    CellC --> EventBus
+
+    style Developer fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style Control fill:#50C878,stroke:#2E7D4E,color:#fff
+    style DataPlane fill:#FFB84D,stroke:#CC8A3D,color:#fff
 ```
 
 Each **PDP cell** operates autonomously with local data and computation, reducing cross-region latency while preserving strong consistency through causally ordered replication.
 
-## **5. Infera Policy Language (IPL)**
+## Infera Policy Language (IPL)
 
 The **Infera Policy Language** (IPL) provides a declarative syntax for modeling entities, relationships, and permissions. It’s inspired by OpenFGA’s schema language but extended with conditions, contextual attributes, and logic composition.
 
-### **Example Schema**
+### Example Schema
 
 ```praxis
 entity document {
@@ -93,7 +121,7 @@ entity document {
 }
 ```
 
-### **Computed Conditions**
+### Computed Conditions
 
 ```praxis
 context time_now: datetime
@@ -101,15 +129,15 @@ context time_now: datetime
 permission view = viewer or (is_public == true and time_now < resource.expiry)
 ```
 
-### **Goals**
+### Goals
 
-* **Deterministic:** Same data and inputs → same result.
-* **Composable:** Policies can reference other permissions or modules.
-* **Validatable:** Pre-deployment linting and static analysis ensure safety.
+- **Deterministic:** Same data and inputs → same result.
+- **Composable:** Policies can reference other permissions or modules.
+- **Validatable:** Pre-deployment linting and static analysis ensure safety.
 
-## **6. WASM Policy Modules**
+## WASM Policy Modules
 
-### **Overview**
+### Overview
 
 While declarative policies (defined in the Infera Policy Language) cover most authorization logic, real-world access control often depends on **contextual or domain-specific logic** — such as time of day, subscription tiers, workflow states, or third-party compliance rules.
 
@@ -117,24 +145,24 @@ To support these dynamic conditions without sacrificing safety or consistency, I
 
 Each module is:
 
-* Compiled to **WebAssembly (WASM)** for portability and determinism.
-* **Signed and versioned** per tenant to ensure immutability and auditability.
-* Executed under strict CPU and memory constraints (e.g., 5ms and 32MB).
-* Invoked by IPL (Infera Policy Language) permissions through the `module` namespace.
+- Compiled to **WebAssembly (WASM)** for portability and determinism.
+- **Signed and versioned** per tenant to ensure immutability and auditability.
+- Executed under strict CPU and memory constraints (e.g., 5ms and 32MB).
+- Invoked by IPL (Infera Policy Language) permissions through the `module` namespace.
 
-### **Real-World Example: Enterprise Document Sharing Platform**
+### Real-World Example
 
 Consider a platform like **“AtlasDocs”**, an enterprise SaaS for secure document collaboration.
 
 Access rules must adapt based on:
 
-* **User role** within an organization (e.g., *editor*, *viewer*, *admin*).
-* **Document classification level** (*confidential*, *internal*, *public*).
-* **Contextual factors**, such as whether the user is accessing from a corporate network, and whether the document is currently under legal hold.
+- **User role** within an organization (e.g., _editor_, _viewer_, _admin_).
+- **Document classification level** (_confidential_, _internal_, _public_).
+- **Contextual factors**, such as whether the user is accessing from a corporate network, and whether the document is currently under legal hold.
 
 Declarative rules can model static relationships like `editor` or `viewer`, but the contextual checks — such as verifying IP range or legal hold state — are better handled by a WASM module.
 
-### **Step 1 — Declarative Policy**
+### Declarative Policy
 
 ```praxis
 entity document {
@@ -145,20 +173,20 @@ entity document {
   attribute classification: string
   attribute legal_hold: bool
 
-  permission view = 
-      viewer 
-      or editor 
+  permission view =
+      viewer
+      or editor
       or (module.check_context(context, resource, subject) == true)
-  
-  permission edit = 
-      editor 
+
+  permission edit =
+      editor
       and module.can_edit(context, resource, subject)
 }
 ```
 
 The policy defines `view` and `edit` permissions that defer advanced context checks to the module.
 
-### **Step 2 — WASM Module Implementation**
+### WASM Module Implementation
 
 Developers can write modules in **Rust** or **TypeScript** and compile to WASM.
 Below is an example implemented in **Rust**, leveraging the safety guarantees of the language while remaining fully deterministic.
@@ -203,11 +231,11 @@ fn ip_in_range(ip: &str, cidr: &str) -> bool {
 
 When compiled to WASM, this module will:
 
-* Accept contextual data (e.g., IP address, session metadata).
-* Read document attributes like `classification` and `legal_hold`.
-* Evaluate a custom logic path that would be cumbersome or unsafe to express in a pure DSL.
+- Accept contextual data (e.g., IP address, session metadata).
+- Read document attributes like `classification` and `legal_hold`.
+- Evaluate a custom logic path that would be cumbersome or unsafe to express in a pure DSL.
 
-### **Step 3 — Module Registration and Versioning**
+### Module Registration
 
 Developers publish the module using the **Infera CLI**:
 
@@ -226,7 +254,7 @@ The Control Plane verifies:
 
 Once validated, the PDP cells for that tenant fetch and cache the compiled bytecode.
 
-### **Step 4 — Execution Flow at Runtime**
+### Runtime Execution
 
 1. A client SDK issues a policy check via the AuthZEN API:
 
@@ -256,15 +284,12 @@ Response example:
   "policy_version": "v1.3.0",
   "module": "context-check",
   "explanation": {
-    "path": [
-      "permission:view",
-      "module.check_context → true"
-    ]
+    "path": ["permission:view", "module.check_context → true"]
   }
 }
 ```
 
-### **Step 5 — Benefits**
+### Benefits
 
 | Benefit           | Description                                                                                                                       |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -274,7 +299,7 @@ Response example:
 | **Performance**   | Module execution is in-process, adding <2ms overhead per check.                                                                   |
 | **Extensibility** | Allows domain engineers (e.g., compliance or risk teams) to define context-sensitive rules without modifying the core policy DSL. |
 
-### **Step 6 — Versioning and Rollback**
+### Versioning and Rollback
 
 Each module version is immutable once published.
 To upgrade a rule safely, developers can branch their policy, publish a new module version, and perform a **simulation** before merge:
@@ -287,45 +312,45 @@ infera merge feature/legal-hold
 
 This workflow provides **safe, reversible policy evolution**.
 
-### **Step 7 — Security and Governance**
+### Security and Governance
 
-* **Module Signing:** Each WASM file must include a detached signature generated with the tenant’s private key.
-* **Static Analysis:** The Control Plane validates all WASM imports to ensure pure determinism (no random, time, or I/O dependencies).
-* **Sandbox Constraints:** CPU, memory, and stack usage limits enforced by the PDP runtime.
-* **Version Pinnings:** Policies always reference an explicit module version — no implicit upgrades.
+- **Module Signing:** Each WASM file must include a detached signature generated with the tenant’s private key.
+- **Static Analysis:** The Control Plane validates all WASM imports to ensure pure determinism (no random, time, or I/O dependencies).
+- **Sandbox Constraints:** CPU, memory, and stack usage limits enforced by the PDP runtime.
+- **Version Pinnings:** Policies always reference an explicit module version — no implicit upgrades.
 
-### **Summary**
+### Summary
 
 WASM Policy Modules make InferaDB not just a relationship graph, but a **programmable reasoning system**.
 They enable organizations to express nuanced, real-world logic — such as conditional access, risk-based checks, or compliance enforcement — while maintaining **strong consistency, safety, and auditability**.
 
-## **7. Consistency Model**
+## Consistency Model
 
-### **7.1 Revision Tokens (Zookies)**
+### Revision Tokens
 
 Every authorization decision references a **revision token**, representing a consistent snapshot of the relationship graph at a given point in time.
 
-### **7.2 Replication**
+### Replication
 
-* **Writes:** Linearizable and region-local.
-* **Reads:** Snapshot-isolated via revision tokens.
-* **Replication:** Causally ordered via version vectors and event streams.
-* **Conflict Resolution:** Single-writer-per-key model ensures determinism.
+- **Writes:** Linearizable and region-local.
+- **Reads:** Snapshot-isolated via revision tokens.
+- **Replication:** Causally ordered via version vectors and event streams.
+- **Conflict Resolution:** Single-writer-per-key model ensures determinism.
 
-## **8. Scalability and Performance**
+## Scalability and Performance
 
 Each PDP cell combines local tuple storage with co-located inference computation, achieving sub-10ms median latency even under multi-tenant workloads.
 
-### **Scaling Mechanisms**
+### Scaling Mechanisms
 
-* **Sharding by tenant or namespace.**
-* **Horizontal PDP scaling with cell discovery.**
-* **Multi-tier caching (in-memory + distributed).**
-* **Batch and streaming tuple ingestion.**
+- **Sharding by tenant or namespace.**
+- **Horizontal PDP scaling with cell discovery.**
+- **Multi-tier caching (in-memory + distributed).**
+- **Batch and streaming tuple ingestion.**
 
 Target scalability: **1M+ checks per second across regions.**
 
-## **9. Security Model**
+## Security Model
 
 | Concern              | Mechanism                                               |
 | -------------------- | ------------------------------------------------------- |
@@ -335,16 +360,16 @@ Target scalability: **1M+ checks per second across regions.**
 | **Auditability**     | Append-only, hash-chained decision logs.                |
 | **Tamper Detection** | Policy and schema signatures verified before execution. |
 
-## **10. Developer Experience**
+## Developer Experience
 
-### **10.1 CLI**
+### CLI
 
 `infera` — a unified command-line tool for:
 
-* Initializing projects and schemas.
-* Branching and merging policies.
-* Uploading modules.
-* Simulating authorization checks.
+- Initializing projects and schemas.
+- Branching and merging policies.
+- Uploading modules.
+- Simulating authorization checks.
 
 Example:
 
@@ -354,20 +379,20 @@ infera simulate --resource document:1 --subject user:evan
 infera merge feature/new-rule
 ```
 
-### **10.2 SDKs**
+### SDKs
 
 Official SDKs for **Go**, **Python**, **TypeScript**, **Rust**, **PHP**, and **Ruby** provide idiomatic bindings for:
 
-* Tuple operations.
-* Policy checks.
-* Audit log queries.
-* AuthZEN-compatible decision requests.
+- Tuple operations.
+- Policy checks.
+- Audit log queries.
+- AuthZEN-compatible decision requests.
 
-### **10.3 Dashboard**
+### Dashboard
 
 The **Infera Dashboard** allows developers to visualize schemas, simulate access paths, and analyze decision traces in real time.
 
-## **11. Implementation Overview**
+## Implementation Overview
 
 | Component                  | Language          | Description                                            |
 | -------------------------- | ----------------- | ------------------------------------------------------ |
@@ -377,21 +402,21 @@ The **Infera Dashboard** allows developers to visualize schemas, simulate access
 | **WASM Modules**           | Rust / TypeScript | Sandbox-executed custom policy logic.                  |
 | **Meta-Repo (`inferadb`)** | N/A               | Orchestration and containerization of the full system. |
 
-## **12. Deployment and Infrastructure**
+## Deployment and Infrastructure
 
-### **12.1 Local Development**
+### Local Development
 
-* **Docker Compose** or **Tilt** for rapid iteration.
-* Local FoundationDB or CockroachDB for tuple storage.
-* Hot reload of dashboard and API containers.
+- **Docker Compose** or **Tilt** for rapid iteration.
+- Local FoundationDB or CockroachDB for tuple storage.
+- Hot reload of dashboard and API containers.
 
-### **12.2 Production**
+### Production
 
-* **Kubernetes (Helm)** for orchestrating multi-tenant clusters.
-* **Terraform** for provisioning infrastructure.
-* **GitHub Actions** for CI/CD pipelines.
+- **Kubernetes (Helm)** for orchestrating multi-tenant clusters.
+- **Terraform** for provisioning infrastructure.
+- **GitHub Actions** for CI/CD pipelines.
 
-### **12.3 Meta-Repo Organization**
+### Repository Structure
 
 ```
 inferadb/
@@ -404,16 +429,16 @@ inferadb/
 └── config/      # Shared configuration
 ```
 
-## **13. Conclusion**
+## Conclusion
 
 InferaDB represents a next-generation approach to authorization — where policies are logic, decisions are proofs, and relationships form the foundation of access reasoning.
 By combining the consistency of Zanzibar, the interoperability of AuthZEN, and the composability of WASM-based modules, InferaDB establishes a new standard for trust, transparency, and developer experience in distributed access control.
 
 > **Authorize by Reason, at Scale.**
 
-## **References**
+## References
 
-[1] Google Zanzibar: Google’s Consistent, Global Authorization System — *USENIX ATC 2019.*
+[1] Google Zanzibar: Google’s Consistent, Global Authorization System — _USENIX ATC 2019._
 [2] SpacetimeDB: A Stateful Database with Co-located Compute.
 [3] AuthZEN: OpenID Foundation Authorization API Specification (v1.0).
 [4] AuthZed / SpiceDB: Open-source Zanzibar implementation.
