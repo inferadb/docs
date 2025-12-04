@@ -79,40 +79,46 @@ For better isolation, create separate Tailscale networks (tailnets) for differen
 
 ### Multi-Region Topology
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Tailscale Mesh VPN                       │
-│                                                              │
-│  ┌────────────────┐        ┌────────────────┐             │
-│  │  US-West-1     │        │  EU-West-1     │             │
-│  │  Kubernetes    │◄──────►│  Kubernetes    │             │
-│  │                │        │                │             │
-│  │  ┌──────────┐  │        │  ┌──────────┐  │             │
-│  │  │ Server   │  │        │  │ Server   │  │             │
-│  │  │ Pod-0    │  │        │  │ Pod-0    │  │             │
-│  │  │ + TS     │  │        │  │ + TS     │  │             │
-│  │  └──────────┘  │        │  └──────────┘  │             │
-│  │  ┌──────────┐  │        │  ┌──────────┐  │             │
-│  │  │ Server   │  │        │  │ Server   │  │             │
-│  │  │ Pod-1    │  │        │  │ Pod-1    │  │             │
-│  │  │ + TS     │  │        │  │ + TS     │  │             │
-│  │  └──────────┘  │        │  └──────────┘  │             │
-│  │                │        │                │             │
-│  │  Management    │        │  Management    │             │
-│  │  API           │        │  API           │             │
-│  └────────────────┘        └────────────────┘             │
-│                                                              │
-│  ┌────────────────┐                                        │
-│  │ AP-Southeast-1 │                                        │
-│  │  Kubernetes    │                                        │
-│  │                │                                        │
-│  │  ┌──────────┐  │                                        │
-│  │  │ Server   │  │                                        │
-│  │  │ Pod-0    │  │                                        │
-│  │  │ + TS     │  │                                        │
-│  │  └──────────┘  │                                        │
-│  └────────────────┘                                        │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Mesh["Tailscale Mesh VPN"]
+        subgraph USWest["US-West-1 Kubernetes"]
+            US_Pod0["Server Pod-0<br/>+ Tailscale"]
+            US_Pod1["Server Pod-1<br/>+ Tailscale"]
+            US_Mgmt["Management API"]
+        end
+
+        subgraph EUWest["EU-West-1 Kubernetes"]
+            EU_Pod0["Server Pod-0<br/>+ Tailscale"]
+            EU_Pod1["Server Pod-1<br/>+ Tailscale"]
+            EU_Mgmt["Management API"]
+        end
+
+        subgraph APSoutheast["AP-Southeast-1 Kubernetes"]
+            AP_Pod0["Server Pod-0<br/>+ Tailscale"]
+        end
+    end
+
+    US_Pod0 <--> EU_Pod0
+    US_Pod0 <--> EU_Pod1
+    US_Pod1 <--> EU_Pod0
+    US_Pod1 <--> EU_Pod1
+    US_Pod0 <--> AP_Pod0
+    US_Pod1 <--> AP_Pod0
+    EU_Pod0 <--> AP_Pod0
+    EU_Pod1 <--> AP_Pod0
+
+    style Mesh fill:#E8F4FD,stroke:#1E88E5
+    style USWest fill:#E3F2FD,stroke:#42A5F5
+    style EUWest fill:#E3F2FD,stroke:#42A5F5
+    style APSoutheast fill:#E3F2FD,stroke:#42A5F5
+    style US_Pod0 fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style US_Pod1 fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style EU_Pod0 fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style EU_Pod1 fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style AP_Pod0 fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style US_Mgmt fill:#FF9800,stroke:#F57C00,color:#fff
+    style EU_Mgmt fill:#FF9800,stroke:#F57C00,color:#fff
 ```
 
 ### Service Discovery Flow
