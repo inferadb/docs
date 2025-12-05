@@ -1,0 +1,72 @@
+# Documentation areas
+area/docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "**/*.mdx"
+
+# CI/CD
+area/ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**/*"
+
+# Architecture documentation
+area/architecture:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/architecture/**/*"
+          - "**/design/**/*"
+          - "**/rfcs/**/*"
+          - "**/rfc/**/*"
+
+# Deployment documentation
+area/deployment:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/deployment/**/*"
+          - "**/deploy/**/*"
+          - "**/kubernetes/**/*"
+          - "**/k8s/**/*"
+
+# API documentation
+area/api:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/api/**/*"
+          - "**/openapi/**/*"
+          - "**/swagger/**/*"
+
+# Security documentation
+area/security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/security/**/*"
+          - "**/auth/**/*"
+          - "**/authentication/**/*"
+          - "**/authorization/**/*"
+
+# Guides and tutorials
+area/guides:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/guides/**/*"
+          - "**/tutorials/**/*"
+          - "**/quickstart/**/*"
+          - "**/getting-started/**/*"
+
+# Configuration
+area/config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.toml"
+          - "**/*.yaml"
+          - "**/*.yml"
+          - "**/*.json"
+          - "!.github/**/*"
+
+# Repository label
+repo/docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*"

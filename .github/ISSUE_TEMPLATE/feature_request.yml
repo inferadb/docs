@@ -1,0 +1,104 @@
+name: Documentation Request
+description: Suggest new documentation or improvements to existing docs
+labels: ["kind/feature", "status/needs-triage"]
+body:
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight Checklist
+      options:
+        - label: I have searched existing issues and discussions to ensure this hasn't been requested
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting documentation improvements! Please describe what you'd like to see.
+
+  - type: dropdown
+    id: request-type
+    attributes:
+      label: Request Type
+      description: What kind of documentation would you like?
+      options:
+        - New guide or tutorial
+        - Expand existing documentation
+        - New code examples
+        - API documentation
+        - Architecture/design documentation
+        - Deployment guide
+        - Troubleshooting guide
+        - FAQ addition
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: section
+    attributes:
+      label: Documentation Section
+      description: Which documentation area does this relate to?
+      options:
+        - Getting Started / Quickstart
+        - Architecture
+        - API Reference
+        - Deployment Guide
+        - Security / Authentication
+        - Configuration
+        - Guides / Tutorials
+        - RFC / Design Documents
+        - New section
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe what documentation you'd like to see.
+      placeholder: I'd like documentation that explains...
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: What are you trying to accomplish? Why is this documentation needed?
+      placeholder: I'm trying to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: outline
+    attributes:
+      label: Suggested Outline
+      description: If you have ideas for what the documentation should cover, please share.
+      placeholder: |
+        1. Introduction
+        2. Prerequisites
+        3. Step-by-step guide
+        4. Examples
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, examples, or references here.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you be willing to contribute this documentation?
+      options:
+        - "Yes, I'd like to write this"
+        - "Yes, with guidance"
+        - "No, but I can help review"
+        - "No"
+    validations:
+      required: false

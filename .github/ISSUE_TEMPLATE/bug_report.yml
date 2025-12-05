@@ -1,0 +1,85 @@
+name: Documentation Issue
+description: Report incorrect, outdated, or confusing documentation
+labels: ["kind/bug", "status/needs-triage"]
+body:
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight Checklist
+      options:
+        - label: I have searched existing issues to ensure this hasn't already been reported
+          required: true
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation! Please provide details about the issue you found.
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - Incorrect information
+        - Outdated content
+        - Missing information
+        - Confusing or unclear
+        - Broken links
+        - Code example doesn't work
+        - Typo or grammar
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: section
+    attributes:
+      label: Documentation Section
+      description: Which documentation area is affected?
+      options:
+        - Getting Started / Quickstart
+        - Architecture
+        - API Reference
+        - Deployment Guide
+        - Security / Authentication
+        - Configuration
+        - Guides / Tutorials
+        - RFC / Design Documents
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: page-url
+    attributes:
+      label: Page URL or File Path
+      description: Link to the documentation page or file path in the repository
+      placeholder: https://inferadb.com/docs/... or docs/guides/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Describe what's wrong with the documentation.
+      placeholder: Describe the issue...
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested-fix
+    attributes:
+      label: Suggested Fix
+      description: If you know how this should be corrected, please describe.
+      placeholder: The documentation should say...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the issue here.
+    validations:
+      required: false
