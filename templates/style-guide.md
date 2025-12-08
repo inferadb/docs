@@ -9,7 +9,7 @@
 
 ## Overview
 
-This guide establishes consistent conventions for all InferaDB documentation across `docs/`, `server/docs/`, and `management/docs/`.
+This guide establishes consistent conventions for all InferaDB documentation across `docs/`, `engine/docs/`, and `control/docs/`.
 
 ## File Naming
 

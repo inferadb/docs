@@ -20,23 +20,23 @@ InferaDB supports dynamic service discovery for production deployments with mult
 
 ## Configuration
 
-### Server - Management API Discovery
+### Engine - Control API Discovery
 
 ```yaml
-# server/config.yaml
+# engine/config.yaml
 auth:
-  management_api:
+  control_api:
     discovery_mode: "kubernetes_service"
-    service_name: "inferadb-management"
+    service_name: "inferadb-control"
     namespace: "inferadb"
     port: 3000
     refresh_interval_seconds: 30
 ```
 
-### Management - Server API Discovery
+### Control - Engine API Discovery
 
 ```yaml
-# management/config.yaml
+# control/config.yaml
 cache_invalidation:
   discovery_mode: "kubernetes_pods"
   label_selector: "app=inferadb-engine"
@@ -51,8 +51,8 @@ Service discovery requires k8s API access. Ensure ServiceAccounts have proper pe
 
 ```bash
 # Apply RBAC configuration
-kubectl apply -f server/k8s/rbac.yaml
-kubectl apply -f management/k8s/rbac.yaml
+kubectl apply -f engine/k8s/rbac.yaml
+kubectl apply -f control/k8s/rbac.yaml
 ```
 
 ## Monitoring

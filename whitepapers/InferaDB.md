@@ -420,8 +420,8 @@ The **Infera Dashboard** allows developers to visualize schemas, simulate access
 
 ```
 inferadb/
-├── server/      # Rust PDP
-├── api/         # TypeScript control plane
+├── engine/      # Rust PDP (authorization engine)
+├── control/     # Rust control plane API
 ├── dashboard/   # Dashboard
 ├── docker/      # Compose files
 ├── k8s/         # Kubernetes manifests

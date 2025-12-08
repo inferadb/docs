@@ -16,8 +16,8 @@ This guide covers migrating from static configuration to dynamic service discove
 
 ```bash
 # Apply RBAC for both services
-kubectl apply -f server/k8s/rbac.yaml
-kubectl apply -f management/k8s/rbac.yaml
+kubectl apply -f engine/k8s/rbac.yaml
+kubectl apply -f control/k8s/rbac.yaml
 ```
 
 ### 2. Update Configuration
@@ -26,9 +26,9 @@ kubectl apply -f management/k8s/rbac.yaml
 
 ```bash
 # Update values.yaml
-helm upgrade inferadb-engine ./server/helm \
+helm upgrade inferadb-engine ./engine/helm \
   --set discovery.mode=kubernetes_service \
-  --set discovery.managementApi.serviceName=inferadb-management
+  --set discovery.controlApi.serviceName=inferadb-control
 ```
 
 **Option B: Environment Variables**
@@ -36,8 +36,8 @@ helm upgrade inferadb-engine ./server/helm \
 ```bash
 # Update deployment
 kubectl set env deployment/inferadb-engine \
-  INFERADB__AUTH__MANAGEMENT_API__DISCOVERY_MODE=kubernetes_service \
-  INFERADB__AUTH__MANAGEMENT_API__SERVICE_NAME=inferadb-management
+  INFERADB__AUTH__CONTROL_API__DISCOVERY_MODE=kubernetes_service \
+  INFERADB__AUTH__CONTROL_API__SERVICE_NAME=inferadb-control
 ```
 
 ### 3. Verify Discovery
@@ -62,9 +62,9 @@ curl localhost:8080/metrics | grep discovery
 If issues occur, revert to static mode:
 
 ```bash
-helm upgrade inferadb-engine ./server/helm \
+helm upgrade inferadb-engine ./engine/helm \
   --set discovery.mode=static \
-  --set discovery.managementApi.staticUrl=http://inferadb-management:3000
+  --set discovery.controlApi.staticUrl=http://inferadb-control:3000
 ```
 
 ## Backward Compatibility

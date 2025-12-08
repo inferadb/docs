@@ -17,8 +17,8 @@ Technical specifications, design documents, and deployment guides.
 
 Most documentation lives within component directories:
 
-- **[server/docs/](../server/docs/)** — Server documentation (API, architecture, security)
-- **[management/docs/](../management/docs/)** — Management API documentation (authentication, deployment)
+- **[engine/docs/](../engine/docs/)** — Engine documentation (API, architecture, security)
+- **[control/docs/](../control/docs/)** — Control API documentation (authentication, deployment)
 
 ## Deployment Guides
 

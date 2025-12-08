@@ -111,8 +111,8 @@ EOF
 
 ```bash
 # Apply RBAC for both server and management
-kubectl apply -f server/k8s/rbac.yaml -n inferadb
-kubectl apply -f management/k8s/rbac.yaml -n inferadb
+kubectl apply -f engine/k8s/rbac.yaml -n inferadb
+kubectl apply -f control/k8s/rbac.yaml -n inferadb
 ```
 
 ### 5. Deploy Management API
@@ -327,8 +327,8 @@ kubectl create secret generic tailscale-auth \
 
 ```bash
 # Apply Tailscale sidecar manifests
-kubectl apply -f server/k8s/tailscale-sidecar.yaml -n inferadb
-kubectl apply -f management/k8s/tailscale-sidecar.yaml -n inferadb
+kubectl apply -f engine/k8s/tailscale-sidecar.yaml -n inferadb
+kubectl apply -f control/k8s/tailscale-sidecar.yaml -n inferadb
 ```
 
 ### 4. Configure Multi-Region Discovery
@@ -374,7 +374,7 @@ kubectl get role inferadb-engine -n inferadb
 kubectl get rolebinding inferadb-engine -n inferadb
 
 # Re-apply RBAC
-kubectl apply -f server/k8s/rbac.yaml -n inferadb
+kubectl apply -f engine/k8s/rbac.yaml -n inferadb
 ```
 
 #### No Endpoints Discovered
