@@ -191,12 +191,12 @@ cache_invalidation:
       remote_clusters:
         - name: "eu-west-1"
           tailscale_domain: "eu-west-1.ts.net"
-          service_name: "inferadb-server"
+          service_name: "inferadb-engine"
           port: 8080
 
         - name: "ap-southeast-1"
           tailscale_domain: "ap-southeast-1.ts.net"
-          service_name: "inferadb-server"
+          service_name: "inferadb-engine"
           port: 8080
 
   http_endpoints: [] # Leave empty when using discovery
@@ -210,16 +210,16 @@ Alternatively, use environment variables:
 
 ```bash
 # Server
-export INFERA__AUTH__DISCOVERY__MODE__TYPE=tailscale
-export INFERA__AUTH__DISCOVERY__MODE__LOCAL_CLUSTER=us-west-1
-export INFERA__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__NAME=eu-west-1
-export INFERA__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__TAILSCALE_DOMAIN=eu-west-1.ts.net
-export INFERA__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__SERVICE_NAME=inferadb-management
-export INFERA__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__PORT=3000
+export INFERADB__AUTH__DISCOVERY__MODE__TYPE=tailscale
+export INFERADB__AUTH__DISCOVERY__MODE__LOCAL_CLUSTER=us-west-1
+export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__NAME=eu-west-1
+export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__TAILSCALE_DOMAIN=eu-west-1.ts.net
+export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__SERVICE_NAME=inferadb-management
+export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__PORT=3000
 
 # Management
-export INFERADB_MGMT__CACHE_INVALIDATION__DISCOVERY__MODE__TYPE=tailscale
-export INFERADB_MGMT__CACHE_INVALIDATION__DISCOVERY__MODE__LOCAL_CLUSTER=us-west-1
+export INFERADB_CTRL__CACHE_INVALIDATION__DISCOVERY__MODE__TYPE=tailscale
+export INFERADB_CTRL__CACHE_INVALIDATION__DISCOVERY__MODE__LOCAL_CLUSTER=us-west-1
 ```
 
 ## Deployment Steps
@@ -282,15 +282,15 @@ Check that pods have joined the Tailscale network:
 
 ```bash
 # Check Tailscale status in a pod
-kubectl exec -it inferadb-server-0 -c tailscale \
+kubectl exec -it inferadb-engine-0 -c tailscale \
   --namespace=inferadb \
   -- tailscale status
 
 # Expected output:
-# 100.64.0.1   inferadb-server-0  -
-# 100.64.0.2   inferadb-server-1  -
-# 100.64.1.1   inferadb-server-0  eu-west-1
-# 100.64.1.2   inferadb-server-1  eu-west-1
+# 100.64.0.1   inferadb-engine-0  -
+# 100.64.0.2   inferadb-engine-1  -
+# 100.64.1.1   inferadb-engine-0  eu-west-1
+# 100.64.1.2   inferadb-engine-1  eu-west-1
 ```
 
 ## Verification
@@ -299,7 +299,7 @@ kubectl exec -it inferadb-server-0 -c tailscale \
 
 ```bash
 # Check discovered endpoints from US-West-1
-kubectl logs -f inferadb-server-0 -c inferadb-server \
+kubectl logs -f inferadb-engine-0 -c inferadb-engine \
   --namespace=inferadb \
   | grep "Discovered Tailscale endpoints"
 
@@ -313,7 +313,7 @@ kubectl logs -f inferadb-server-0 -c inferadb-server \
 
 ```bash
 # Resolve a service name via Tailscale MagicDNS
-kubectl exec -it inferadb-server-0 -c tailscale \
+kubectl exec -it inferadb-engine-0 -c tailscale \
   --namespace=inferadb \
   -- nslookup inferadb-management.eu-west-1.ts.net
 
@@ -334,7 +334,7 @@ curl -X POST http://management-api-us-west-1/v1/vaults \
   -d '{"name": "test-vault"}'
 
 # Check logs in EU-West-1 server
-kubectl logs -f inferadb-server-0 \
+kubectl logs -f inferadb-engine-0 \
   --namespace=inferadb \
   --context=eu-west-1 \
   | grep "vault invalidation"
@@ -354,7 +354,7 @@ kubectl logs -f inferadb-server-0 \
 1. Check Tailscale is running:
 
    ```bash
-   kubectl exec -it inferadb-server-0 -c tailscale -- tailscale status
+   kubectl exec -it inferadb-engine-0 -c tailscale -- tailscale status
    ```
 
 2. Verify MagicDNS is enabled in Tailscale admin console
@@ -362,7 +362,7 @@ kubectl logs -f inferadb-server-0 \
 3. Check DNS configuration:
 
    ```bash
-   kubectl exec -it inferadb-server-0 -c tailscale -- cat /etc/resolv.conf
+   kubectl exec -it inferadb-engine-0 -c tailscale -- cat /etc/resolv.conf
    ```
 
 ### No Endpoints Discovered
@@ -382,8 +382,8 @@ kubectl logs -f inferadb-server-0 \
 3. Test manual DNS lookup:
 
    ```bash
-   kubectl exec -it inferadb-server-0 -c tailscale \
-     -- nslookup inferadb-server.eu-west-1.ts.net
+   kubectl exec -it inferadb-engine-0 -c tailscale \
+     -- nslookup inferadb-engine.eu-west-1.ts.net
    ```
 
 ### Tailscale Sidecar Not Starting
@@ -401,13 +401,13 @@ kubectl logs -f inferadb-server-0 \
 2. Check container logs:
 
    ```bash
-   kubectl logs inferadb-server-0 -c tailscale
+   kubectl logs inferadb-engine-0 -c tailscale
    ```
 
 3. Verify security context allows NET_ADMIN capability:
 
    ```bash
-   kubectl get pod inferadb-server-0 -o yaml | grep -A5 securityContext
+   kubectl get pod inferadb-engine-0 -o yaml | grep -A5 securityContext
    ```
 
 ### High Latency Between Regions
@@ -419,7 +419,7 @@ kubectl logs -f inferadb-server-0 \
 1. Check Tailscale route preference:
 
    ```bash
-   kubectl exec -it inferadb-server-0 -c tailscale \
+   kubectl exec -it inferadb-engine-0 -c tailscale \
      -- tailscale status --json | jq '.Peer[] | {Name, CurAddr, Relay}'
    ```
 

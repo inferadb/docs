@@ -26,7 +26,7 @@ kubectl apply -f management/k8s/rbac.yaml
 
 ```bash
 # Update values.yaml
-helm upgrade inferadb-server ./server/helm \
+helm upgrade inferadb-engine ./server/helm \
   --set discovery.mode=kubernetes_service \
   --set discovery.managementApi.serviceName=inferadb-management
 ```
@@ -35,9 +35,9 @@ helm upgrade inferadb-server ./server/helm \
 
 ```bash
 # Update deployment
-kubectl set env deployment/inferadb-server \
-  INFERA__AUTH__MANAGEMENT_API__DISCOVERY_MODE=kubernetes_service \
-  INFERA__AUTH__MANAGEMENT_API__SERVICE_NAME=inferadb-management
+kubectl set env deployment/inferadb-engine \
+  INFERADB__AUTH__MANAGEMENT_API__DISCOVERY_MODE=kubernetes_service \
+  INFERADB__AUTH__MANAGEMENT_API__SERVICE_NAME=inferadb-management
 ```
 
 ### 3. Verify Discovery
@@ -45,7 +45,7 @@ kubectl set env deployment/inferadb-server \
 Check logs for successful discovery:
 
 ```bash
-kubectl logs -f deployment/inferadb-server | grep discovery
+kubectl logs -f deployment/inferadb-engine | grep discovery
 # Expected: "Discovered k8s endpoints: count=3"
 ```
 
@@ -53,7 +53,7 @@ kubectl logs -f deployment/inferadb-server | grep discovery
 
 ```bash
 # Check discovery health
-kubectl port-forward svc/inferadb-server 8080:8080
+kubectl port-forward svc/inferadb-engine 8080:8080
 curl localhost:8080/metrics | grep discovery
 ```
 
@@ -62,7 +62,7 @@ curl localhost:8080/metrics | grep discovery
 If issues occur, revert to static mode:
 
 ```bash
-helm upgrade inferadb-server ./server/helm \
+helm upgrade inferadb-engine ./server/helm \
   --set discovery.mode=static \
   --set discovery.managementApi.staticUrl=http://inferadb-management:3000
 ```

@@ -246,7 +246,7 @@ infera module publish ./target/wasm32-unknown-unknown/release/atlasdocs_context.
   --version v1.3.0
 ```
 
-The Control Plane verifies:
+Control Plane verifies:
 
 1. The module’s **signature** (developer or tenant key).
 2. Its **determinism guarantee** (static analysis of WASM imports).
@@ -315,7 +315,7 @@ This workflow provides **safe, reversible policy evolution**.
 ### Security and Governance
 
 - **Module Signing:** Each WASM file must include a detached signature generated with the tenant’s private key.
-- **Static Analysis:** The Control Plane validates all WASM imports to ensure pure determinism (no random, time, or I/O dependencies).
+- **Static Analysis:** Control Plane validates all WASM imports to ensure pure determinism (no random, time, or I/O dependencies).
 - **Sandbox Constraints:** CPU, memory, and stack usage limits enforced by the PDP runtime.
 - **Version Pinnings:** Policies always reference an explicit module version — no implicit upgrades.
 
@@ -446,4 +446,4 @@ By combining the consistency of Zanzibar, the interoperability of AuthZEN, and t
 [6] Oso: Policy engine for application-level authorization.
 
 Would you like me to include a **visual architecture diagram (in Markdown-friendly text + mermaid)** to accompany this whitepaper?
-It would illustrate the Control Plane, PDP Cells, and Replication model directly inside the document.
+It would illustrate Control Plane, PDP Cells, and Replication model directly inside the document.

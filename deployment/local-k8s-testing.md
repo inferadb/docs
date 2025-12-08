@@ -43,14 +43,14 @@ kubectl get nodes
 ```bash
 # Build server image
 cd server
-docker build -t inferadb-server:local .
+docker build -t inferadb-engine:local .
 
 # Build management image
 cd ../management
 docker build -t inferadb-management:local .
 
 # Load images into kind cluster
-kind load docker-image inferadb-server:local --name inferadb-local
+kind load docker-image inferadb-engine:local --name inferadb-local
 kind load docker-image inferadb-management:local --name inferadb-local
 ```
 
@@ -121,7 +121,7 @@ kubectl apply -f management/k8s/rbac.yaml -n inferadb
 # Create management secrets
 kubectl create secret generic inferadb-management-secrets \
   --namespace inferadb \
-  --from-literal=INFERADB_MGMT__DATABASE__FDB_CLUSTER_FILE=/etc/foundationdb/fdb.cluster
+  --from-literal=INFERADB_CTRL__DATABASE__FDB_CLUSTER_FILE=/etc/foundationdb/fdb.cluster
 
 # Deploy management API
 kubectl apply -f - <<EOF
@@ -203,47 +203,47 @@ kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: inferadb-server
+  name: inferadb-engine
   namespace: inferadb
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: inferadb-server
+      app: inferadb-engine
   template:
     metadata:
       labels:
-        app: inferadb-server
+        app: inferadb-engine
     spec:
-      serviceAccountName: inferadb-server
+      serviceAccountName: inferadb-engine
       containers:
       - name: inferadb
-        image: inferadb-server:local
+        image: inferadb-engine:local
         imagePullPolicy: Never
         ports:
         - containerPort: 8080
         env:
         - name: RUST_LOG
           value: "info,infera_discovery=debug,infera_auth=debug"
-        - name: INFERA__SERVER__HOST
+        - name: INFERADB__SERVER__HOST
           value: "0.0.0.0"
-        - name: INFERA__SERVER__PORT
+        - name: INFERADB__SERVER__PORT
           value: "8080"
-        - name: INFERA__AUTH__DISCOVERY__MODE__TYPE
+        - name: INFERADB__AUTH__DISCOVERY__MODE__TYPE
           value: "kubernetes"
-        - name: INFERA__AUTH__DISCOVERY__CACHE_TTL_SECONDS
+        - name: INFERADB__AUTH__DISCOVERY__CACHE_TTL_SECONDS
           value: "30"
-        - name: INFERA__AUTH__MANAGEMENT_API_URL
+        - name: INFERADB__AUTH__MANAGEMENT_API_URL
           value: "http://inferadb-management.inferadb.svc.cluster.local:3000"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: inferadb-server
+  name: inferadb-engine
   namespace: inferadb
 spec:
   selector:
-    app: inferadb-server
+    app: inferadb-engine
   ports:
   - port: 8080
     targetPort: 8080
@@ -256,7 +256,7 @@ EOF
 
 ```bash
 # Watch server logs for discovery messages
-kubectl logs -f deployment/inferadb-server -n inferadb | grep -i discovery
+kubectl logs -f deployment/inferadb-engine -n inferadb | grep -i discovery
 
 # Expected log output:
 # "Discovered k8s endpoints: count=2"
@@ -282,7 +282,7 @@ kubectl logs -f deployment/inferadb-management -n inferadb | grep -i discovery
 
 ```bash
 # Check if server can query k8s endpoints
-kubectl exec -n inferadb deployment/inferadb-server -- \
+kubectl exec -n inferadb deployment/inferadb-engine -- \
   curl -s http://kubernetes.default.svc/api/v1/namespaces/inferadb/endpoints/inferadb-management \
   --header "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
   --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
@@ -298,7 +298,7 @@ kubectl scale deployment/inferadb-management --replicas=4 -n inferadb
 
 # Wait 30 seconds for cache expiry, then check server logs
 sleep 30
-kubectl logs deployment/inferadb-server -n inferadb --tail=20 | grep discovered
+kubectl logs deployment/inferadb-engine -n inferadb --tail=20 | grep discovered
 
 # Scale down
 kubectl scale deployment/inferadb-management --replicas=2 -n inferadb
@@ -347,7 +347,7 @@ See [tailscale-multi-region.md](tailscale-multi-region.md) for full production s
 
 ```bash
 # Port-forward to server metrics endpoint
-kubectl port-forward -n inferadb deployment/inferadb-server 8080:8080
+kubectl port-forward -n inferadb deployment/inferadb-engine 8080:8080
 
 # Query discovery metrics
 curl http://localhost:8080/metrics | grep -E "inferadb_(discovery|lb_)"
@@ -370,8 +370,8 @@ Key metrics to watch:
 
 ```bash
 # Verify RBAC is applied
-kubectl get role inferadb-server -n inferadb
-kubectl get rolebinding inferadb-server -n inferadb
+kubectl get role inferadb-engine -n inferadb
+kubectl get rolebinding inferadb-engine -n inferadb
 
 # Re-apply RBAC
 kubectl apply -f server/k8s/rbac.yaml -n inferadb
@@ -402,12 +402,12 @@ kubectl get endpoints inferadb-management -n inferadb
 
 ```bash
 # Increase cache TTL
-kubectl set env deployment/inferadb-server \
-  INFERA__AUTH__DISCOVERY__CACHE_TTL_SECONDS=300 \
+kubectl set env deployment/inferadb-engine \
+  INFERADB__AUTH__DISCOVERY__CACHE_TTL_SECONDS=300 \
   -n inferadb
 
 # Check logs for cache hits
-kubectl logs deployment/inferadb-server -n inferadb | grep "cache hit"
+kubectl logs deployment/inferadb-engine -n inferadb | grep "cache hit"
 ```
 
 ## Cleanup

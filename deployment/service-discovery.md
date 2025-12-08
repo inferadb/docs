@@ -39,7 +39,7 @@ auth:
 # management/config.yaml
 cache_invalidation:
   discovery_mode: "kubernetes_pods"
-  label_selector: "app=inferadb-server"
+  label_selector: "app=inferadb-engine"
   namespace: "inferadb"
   port: 8080
   refresh_interval_seconds: 30
