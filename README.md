@@ -1,44 +1,36 @@
 # InferaDB Documentation
 
-Technical specifications, design documents, and deployment guides.
-
-## Structure
-
-| Directory       | Description                                    |
-| --------------- | ---------------------------------------------- |
-| `whitepapers/`  | Long-form technical documents and publications |
-| `deployment/`   | Kubernetes, multi-region, and testing guides   |
-| `templates/`    | Document templates and style guide             |
-| `rfcs/`         | Feature and design proposals                   |
-| `designs/`      | Deep dives into subsystems                     |
-| `diagrams/`     | Architecture and flow diagrams                 |
+Technical specifications, deployment guides, and design proposals.
 
 ## Component Documentation
 
-Most documentation lives within component directories:
+Most documentation lives within component repositories:
 
-- **[engine/docs/](../engine/docs/)** — Engine documentation (API, architecture, security)
-- **[control/docs/](../control/docs/)** — Control API documentation (authentication, deployment)
+- **[engine/](https://github.com/inferadb/engine/tree/main/docs)** — Engine docs (API, IPL, architecture)
+- **[control/](https://github.com/inferadb/control/tree/main/docs)** — Control docs (authentication, entities)
 
-## Deployment Guides
+## Deployment
 
 - [Local Kubernetes Testing](deployment/local-k8s-testing.md)
 - [Service Discovery](deployment/service-discovery.md)
+- [Migration to Discovery](deployment/migration-to-discovery.md)
 - [Tailscale Multi-Region](deployment/tailscale-multi-region.md)
 
-## Style Guide
+## Whitepapers
 
-All documentation follows [templates/style-guide.md](templates/style-guide.md):
+- [InferaDB Technical Overview](whitepapers/InferaDB.md)
 
-- **File naming**: `kebab-case.md`
-- **Headers**: Plain text Title Case
-- **Diagrams**: Mermaid instead of ASCII art
-- **Code blocks**: Always specify language tags
+## Structure
 
-## Proposing Changes
+| Directory      | Description                          |
+| -------------- | ------------------------------------ |
+| `deployment/`  | Kubernetes and infrastructure guides |
+| `whitepapers/` | Technical publications               |
+| `templates/`   | RFC template and style guide         |
+| `rfcs/`        | Feature proposals (use template)     |
 
-1. Fork the repository
-2. Copy `templates/rfc-template.md` into `rfcs/`
-3. Name your file `XXXX-short-title.md`
-4. Follow the [Style Guide](templates/style-guide.md)
-5. Submit a pull request
+## Contributing
+
+1. Copy [templates/rfc-template.md](templates/rfc-template.md) to `rfcs/XXXX-title.md`
+2. Follow the [Style Guide](templates/style-guide.md)
+3. Submit a pull request

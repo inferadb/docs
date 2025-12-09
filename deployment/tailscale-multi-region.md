@@ -83,19 +83,19 @@ For better isolation, create separate Tailscale networks (tailnets) for differen
 graph TD
     subgraph Mesh["Tailscale Mesh VPN"]
         subgraph USWest["US-West-1 Kubernetes"]
-            US_Pod0["Server Pod-0<br/>+ Tailscale"]
-            US_Pod1["Server Pod-1<br/>+ Tailscale"]
-            US_Mgmt["Management API"]
+            US_Pod0["Engine Pod-0<br/>+ Tailscale"]
+            US_Pod1["Engine Pod-1<br/>+ Tailscale"]
+            US_Ctrl["Control"]
         end
 
         subgraph EUWest["EU-West-1 Kubernetes"]
-            EU_Pod0["Server Pod-0<br/>+ Tailscale"]
-            EU_Pod1["Server Pod-1<br/>+ Tailscale"]
-            EU_Mgmt["Management API"]
+            EU_Pod0["Engine Pod-0<br/>+ Tailscale"]
+            EU_Pod1["Engine Pod-1<br/>+ Tailscale"]
+            EU_Ctrl["Control"]
         end
 
         subgraph APSoutheast["AP-Southeast-1 Kubernetes"]
-            AP_Pod0["Server Pod-0<br/>+ Tailscale"]
+            AP_Pod0["Engine Pod-0<br/>+ Tailscale"]
         end
     end
 
@@ -117,8 +117,8 @@ graph TD
     style EU_Pod0 fill:#4CAF50,stroke:#2E7D32,color:#fff
     style EU_Pod1 fill:#4CAF50,stroke:#2E7D32,color:#fff
     style AP_Pod0 fill:#4CAF50,stroke:#2E7D32,color:#fff
-    style US_Mgmt fill:#FF9800,stroke:#F57C00,color:#fff
-    style EU_Mgmt fill:#FF9800,stroke:#F57C00,color:#fff
+    style US_Ctrl fill:#FF9800,stroke:#F57C00,color:#fff
+    style EU_Ctrl fill:#FF9800,stroke:#F57C00,color:#fff
 ```
 
 ### Service Discovery Flow
@@ -130,7 +130,7 @@ graph TD
 
 ## Configuration
 
-### Server Configuration
+### Engine Configuration
 
 **Helm values.yaml** (US-West-1):
 
@@ -147,13 +147,13 @@ discovery:
     remoteClusters:
       - name: "eu-west-1"
         tailscaleDomain: "eu-west-1.ts.net"
-        serviceName: "inferadb-management"
-        port: 3000
+        serviceName: "inferadb-control"
+        port: 9090
 
       - name: "ap-southeast-1"
         tailscaleDomain: "ap-southeast-1.ts.net"
-        serviceName: "inferadb-management"
-        port: 3000
+        serviceName: "inferadb-control"
+        port: 9090
 
     # Tailscale auth key secret
     authKey:
@@ -178,7 +178,7 @@ discovery:
     acceptDNS: false
 ```
 
-### Management API Configuration
+### Control Configuration
 
 **config.yaml** (US-West-1):
 
@@ -209,15 +209,15 @@ cache_invalidation:
 Alternatively, use environment variables:
 
 ```bash
-# Server
+# Engine
 export INFERADB__AUTH__DISCOVERY__MODE__TYPE=tailscale
 export INFERADB__AUTH__DISCOVERY__MODE__LOCAL_CLUSTER=us-west-1
 export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__NAME=eu-west-1
 export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__TAILSCALE_DOMAIN=eu-west-1.ts.net
-export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__SERVICE_NAME=inferadb-management
-export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__PORT=3000
+export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__SERVICE_NAME=inferadb-control
+export INFERADB__AUTH__DISCOVERY__MODE__REMOTE_CLUSTERS__0__PORT=9090
 
-# Management
+# Control
 export INFERADB_CTRL__CACHE_INVALIDATION__DISCOVERY__MODE__TYPE=tailscale
 export INFERADB_CTRL__CACHE_INVALIDATION__DISCOVERY__MODE__LOCAL_CLUSTER=us-west-1
 ```
@@ -315,10 +315,10 @@ kubectl logs -f inferadb-engine-0 -c inferadb-engine \
 # Resolve a service name via Tailscale MagicDNS
 kubectl exec -it inferadb-engine-0 -c tailscale \
   --namespace=inferadb \
-  -- nslookup inferadb-management.eu-west-1.ts.net
+  -- nslookup inferadb-control.eu-west-1.ts.net
 
 # Expected output:
-# Name: inferadb-management.eu-west-1.ts.net
+# Name: inferadb-control.eu-west-1.ts.net
 # Address: 100.64.1.1
 # Address: 100.64.1.2
 ```
@@ -329,11 +329,11 @@ Create a vault in US-West-1 and verify cache invalidation reaches EU-West-1:
 
 ```bash
 # Create vault (triggers cache invalidation webhook)
-curl -X POST http://management-api-us-west-1/v1/vaults \
+curl -X POST http://control-us-west-1/v1/vaults \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"name": "test-vault"}'
 
-# Check logs in EU-West-1 server
+# Check logs in EU-West-1 engine
 kubectl logs -f inferadb-engine-0 \
   --namespace=inferadb \
   --context=eu-west-1 \

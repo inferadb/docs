@@ -28,7 +28,7 @@ kubectl apply -f control/k8s/rbac.yaml
 # Update values.yaml
 helm upgrade inferadb-engine ./engine/helm \
   --set discovery.mode=kubernetes_service \
-  --set discovery.controlApi.serviceName=inferadb-control
+  --set discovery.control.serviceName=inferadb-control
 ```
 
 **Option B: Environment Variables**
@@ -36,8 +36,8 @@ helm upgrade inferadb-engine ./engine/helm \
 ```bash
 # Update deployment
 kubectl set env deployment/inferadb-engine \
-  INFERADB__AUTH__CONTROL_API__DISCOVERY_MODE=kubernetes_service \
-  INFERADB__AUTH__CONTROL_API__SERVICE_NAME=inferadb-control
+  INFERADB__AUTH__CONTROL__DISCOVERY_MODE=kubernetes_service \
+  INFERADB__AUTH__CONTROL__SERVICE_NAME=inferadb-control
 ```
 
 ### 3. Verify Discovery
@@ -64,7 +64,7 @@ If issues occur, revert to static mode:
 ```bash
 helm upgrade inferadb-engine ./engine/helm \
   --set discovery.mode=static \
-  --set discovery.controlApi.staticUrl=http://inferadb-control:3000
+  --set discovery.control.staticUrl=http://inferadb-control:9090
 ```
 
 ## Backward Compatibility

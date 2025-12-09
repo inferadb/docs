@@ -41,17 +41,17 @@ kubectl get nodes
 ### 2. Build and Load Docker Images
 
 ```bash
-# Build server image
-cd server
+# Build engine image
+cd engine
 docker build -t inferadb-engine:local .
 
-# Build management image
-cd ../management
-docker build -t inferadb-management:local .
+# Build control image
+cd ../control
+docker build -t inferadb-control:local .
 
 # Load images into kind cluster
 kind load docker-image inferadb-engine:local --name inferadb-local
-kind load docker-image inferadb-management:local --name inferadb-local
+kind load docker-image inferadb-control:local --name inferadb-local
 ```
 
 ### 3. Deploy FoundationDB
@@ -110,31 +110,31 @@ EOF
 ### 4. Deploy RBAC Resources
 
 ```bash
-# Apply RBAC for both server and management
+# Apply RBAC for both Engine and Control
 kubectl apply -f engine/k8s/rbac.yaml -n inferadb
 kubectl apply -f control/k8s/rbac.yaml -n inferadb
 ```
 
-### 5. Deploy Management API
+### 5. Deploy Control
 
 ```bash
-# Create management secrets
-kubectl create secret generic inferadb-management-secrets \
+# Create control secrets
+kubectl create secret generic inferadb-control-secrets \
   --namespace inferadb \
   --from-literal=INFERADB_CTRL__DATABASE__FDB_CLUSTER_FILE=/etc/foundationdb/fdb.cluster
 
-# Deploy management API
+# Deploy Control
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: inferadb-management-config
+  name: inferadb-control-config
   namespace: inferadb
 data:
   config.yaml: |
     http:
       host: "0.0.0.0"
-      port: 3000
+      port: 9090
     storage:
       backend: "foundationdb"
       fdb_cluster_file: "/etc/foundationdb/fdb.cluster"
@@ -146,28 +146,28 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: inferadb-management
+  name: inferadb-control
   namespace: inferadb
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: inferadb-management
+      app: inferadb-control
   template:
     metadata:
       labels:
-        app: inferadb-management
+        app: inferadb-control
     spec:
-      serviceAccountName: inferadb-management
+      serviceAccountName: inferadb-control
       containers:
-      - name: management-api
-        image: inferadb-management:local
+      - name: control
+        image: inferadb-control:local
         imagePullPolicy: Never
         ports:
-        - containerPort: 3000
+        - containerPort: 9090
         env:
         - name: RUST_LOG
-          value: "info,infera_management_core=debug"
+          value: "info,inferadb_control_core=debug"
         volumeMounts:
         - name: config
           mountPath: /etc/inferadb
@@ -176,7 +176,7 @@ spec:
       volumes:
       - name: config
         configMap:
-          name: inferadb-management-config
+          name: inferadb-control-config
       - name: fdb-cluster-file
         configMap:
           name: foundationdb-cluster-file
@@ -184,21 +184,21 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: inferadb-management
+  name: inferadb-control
   namespace: inferadb
 spec:
   selector:
-    app: inferadb-management
+    app: inferadb-control
   ports:
-  - port: 3000
-    targetPort: 3000
+  - port: 9090
+    targetPort: 9090
 EOF
 ```
 
-### 6. Deploy Server with Service Discovery
+### 6. Deploy Engine with Service Discovery
 
 ```bash
-# Deploy server with Kubernetes discovery enabled
+# Deploy Engine with Kubernetes discovery enabled
 kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
@@ -224,17 +224,17 @@ spec:
         - containerPort: 8080
         env:
         - name: RUST_LOG
-          value: "info,infera_discovery=debug,infera_auth=debug"
-        - name: INFERADB__SERVER__HOST
+          value: "info,inferadb_discovery=debug,inferadb_auth=debug"
+        - name: INFERADB__ENGINE__HOST
           value: "0.0.0.0"
-        - name: INFERADB__SERVER__PORT
+        - name: INFERADB__ENGINE__PORT
           value: "8080"
         - name: INFERADB__AUTH__DISCOVERY__MODE__TYPE
           value: "kubernetes"
         - name: INFERADB__AUTH__DISCOVERY__CACHE_TTL_SECONDS
           value: "30"
-        - name: INFERADB__AUTH__MANAGEMENT_API_URL
-          value: "http://inferadb-management.inferadb.svc.cluster.local:3000"
+        - name: INFERADB__AUTH__CONTROL_URL
+          value: "http://inferadb-control.inferadb.svc.cluster.local:9090"
 ---
 apiVersion: v1
 kind: Service
@@ -255,7 +255,7 @@ EOF
 ### Verify Kubernetes Discovery
 
 ```bash
-# Watch server logs for discovery messages
+# Watch engine logs for discovery messages
 kubectl logs -f deployment/inferadb-engine -n inferadb | grep -i discovery
 
 # Expected log output:
@@ -263,27 +263,27 @@ kubectl logs -f deployment/inferadb-engine -n inferadb | grep -i discovery
 # "Using cached endpoints"
 ```
 
-### Test Management API Discovery
+### Test Control Discovery
 
 ```bash
-# Trigger a webhook from management API
-kubectl exec -n inferadb deployment/inferadb-management -- \
-  curl -X POST http://localhost:3000/v1/organizations/123/vaults/456
+# Trigger a webhook from Control
+kubectl exec -n inferadb deployment/inferadb-control -- \
+  curl -X POST http://localhost:9090/v1/organizations/123/vaults/456
 
-# Check management logs for endpoint discovery
-kubectl logs -f deployment/inferadb-management -n inferadb | grep -i discovery
+# Check control logs for endpoint discovery
+kubectl logs -f deployment/inferadb-control -n inferadb | grep -i discovery
 
 # Expected output:
 # "Discovered Kubernetes endpoints"
-# "Discovered server endpoints: count=3"
+# "Discovered engine endpoints: count=3"
 ```
 
 ### Verify Endpoints API Access
 
 ```bash
-# Check if server can query k8s endpoints
+# Check if engine can query k8s endpoints
 kubectl exec -n inferadb deployment/inferadb-engine -- \
-  curl -s http://kubernetes.default.svc/api/v1/namespaces/inferadb/endpoints/inferadb-management \
+  curl -s http://kubernetes.default.svc/api/v1/namespaces/inferadb/endpoints/inferadb-control \
   --header "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
   --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 
@@ -293,15 +293,15 @@ kubectl exec -n inferadb deployment/inferadb-engine -- \
 ### Scale and Observe
 
 ```bash
-# Scale management API and watch server discover new endpoints
-kubectl scale deployment/inferadb-management --replicas=4 -n inferadb
+# Scale Control and watch engine discover new endpoints
+kubectl scale deployment/inferadb-control --replicas=4 -n inferadb
 
-# Wait 30 seconds for cache expiry, then check server logs
+# Wait 30 seconds for cache expiry, then check engine logs
 sleep 30
 kubectl logs deployment/inferadb-engine -n inferadb --tail=20 | grep discovered
 
 # Scale down
-kubectl scale deployment/inferadb-management --replicas=2 -n inferadb
+kubectl scale deployment/inferadb-control --replicas=2 -n inferadb
 ```
 
 ## Testing Tailscale (Advanced)
@@ -346,7 +346,7 @@ See [tailscale-multi-region.md](tailscale-multi-region.md) for full production s
 ### Check Prometheus Metrics
 
 ```bash
-# Port-forward to server metrics endpoint
+# Port-forward to engine metrics endpoint
 kubectl port-forward -n inferadb deployment/inferadb-engine 8080:8080
 
 # Query discovery metrics
@@ -385,13 +385,13 @@ kubectl apply -f engine/k8s/rbac.yaml -n inferadb
 
 ```bash
 # Check service exists
-kubectl get svc inferadb-management -n inferadb
+kubectl get svc inferadb-control -n inferadb
 
 # Check pods are ready
-kubectl get pods -n inferadb -l app=inferadb-management
+kubectl get pods -n inferadb -l app=inferadb-control
 
 # Check endpoints manually
-kubectl get endpoints inferadb-management -n inferadb
+kubectl get endpoints inferadb-control -n inferadb
 ```
 
 #### Cache Not Working

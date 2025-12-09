@@ -20,20 +20,20 @@ InferaDB supports dynamic service discovery for production deployments with mult
 
 ## Configuration
 
-### Engine - Control API Discovery
+### Engine - Control Discovery
 
 ```yaml
 # engine/config.yaml
 auth:
-  control_api:
+  control:
     discovery_mode: "kubernetes_service"
     service_name: "inferadb-control"
     namespace: "inferadb"
-    port: 3000
+    port: 9090
     refresh_interval_seconds: 30
 ```
 
-### Control - Engine API Discovery
+### Control - Engine Discovery
 
 ```yaml
 # control/config.yaml

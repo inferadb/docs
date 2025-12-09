@@ -396,9 +396,9 @@ The **Infera Dashboard** allows developers to visualize schemas, simulate access
 
 | Component                  | Language          | Description                                            |
 | -------------------------- | ----------------- | ------------------------------------------------------ |
-| **Server (PDP Engine)**    | Rust              | Core inference and policy evaluation engine.           |
-| **API (Control Plane)**    | TypeScript        | Tenant management, policy registry, audit log API.     |
-| **Dashboard (UI)**         | TypeScript        | Web interface for visualization and simulation.        |
+| **Engine**                 | Rust              | Core inference and policy evaluation engine.           |
+| **Control**                | Rust              | Tenant management, policy registry, audit log API.     |
+| **Dashboard**              | TypeScript        | Web interface for visualization and simulation.        |
 | **WASM Modules**           | Rust / TypeScript | Sandbox-executed custom policy logic.                  |
 | **Meta-Repo (`inferadb`)** | N/A               | Orchestration and containerization of the full system. |
 
@@ -408,7 +408,7 @@ The **Infera Dashboard** allows developers to visualize schemas, simulate access
 
 - **Docker Compose** or **Tilt** for rapid iteration.
 - Local FoundationDB or CockroachDB for tuple storage.
-- Hot reload of dashboard and API containers.
+- Hot reload of dashboard and control containers.
 
 ### Production
 
@@ -420,8 +420,8 @@ The **Infera Dashboard** allows developers to visualize schemas, simulate access
 
 ```
 inferadb/
-├── engine/      # Rust PDP (authorization engine)
-├── control/     # Rust control plane API
+├── engine/      # Rust authorization engine
+├── control/     # Rust control API
 ├── dashboard/   # Dashboard
 ├── docker/      # Compose files
 ├── k8s/         # Kubernetes manifests
