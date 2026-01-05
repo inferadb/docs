@@ -1,3 +1,7 @@
+# Labeler configuration
+# See: https://github.com/actions/labeler
+# Labels must match those defined in .github/maintenance/labels.sh
+
 # Documentation areas
 area/docs:
   - changed-files:
@@ -17,8 +21,20 @@ area/architecture:
       - any-glob-to-any-file:
           - "**/architecture/**/*"
           - "**/design/**/*"
+
+# RFCs
+area/rfcs:
+  - changed-files:
+      - any-glob-to-any-file:
           - "**/rfcs/**/*"
           - "**/rfc/**/*"
+
+# Whitepapers
+area/whitepapers:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/whitepapers/**/*"
+          - "**/whitepaper/**/*"
 
 # Deployment documentation
 area/deployment:
@@ -64,9 +80,3 @@ area/config:
           - "**/*.yml"
           - "**/*.json"
           - "!.github/**/*"
-
-# Repository label
-repo/docs:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "**/*"
