@@ -1,0 +1,152 @@
+# InferaDB Documentation - CSpell Configuration
+# https://cspell.org/configuration/
+
+version: "0.2"
+language: "en"
+
+# Dictionary files
+dictionaryDefinitions:
+  - name: inferadb
+    path: ./inferadb.txt
+    addWords: true
+    description: InferaDB-specific technical terms
+  - name: tech-terms
+    path: ./tech-terms.txt
+    addWords: true
+    description: General technology terms
+
+# Use these dictionaries
+dictionaries:
+  - inferadb
+  - tech-terms
+  - en_US
+  - en-gb
+  - companies
+  - softwareTerms
+  - misc
+  - filetypes
+  - npm
+  - node
+  - html
+  - css
+  - bash
+  - docker
+  - k8s
+  - rust
+  - typescript
+  - golang
+
+# Files to check
+files:
+  - "**/*.md"
+  - "**/*.mdx"
+
+# Files to ignore
+ignorePaths:
+  - node_modules/**
+  - .git/**
+  - "**/vendor/**"
+  - "**/*.min.js"
+  - "**/package-lock.json"
+  - "**/yarn.lock"
+  - "**/.DS_Store"
+
+# Patterns to ignore within files
+ignoreRegExpList:
+  # URLs
+  - "https?://[^\\s)\\]>]+"
+  # Email addresses
+  - "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+  # File paths
+  - "/[a-zA-Z0-9/_.-]+"
+  # Inline code (backticks)
+  - "`[^`]+`"
+  # Code blocks (handled separately, but safety net)
+  - "```[\\s\\S]*?```"
+  # SHA hashes
+  - "\\b[a-f0-9]{40}\\b"
+  - "\\b[a-f0-9]{7,8}\\b"
+  # UUIDs
+  - "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+  # Version numbers
+  - "v\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?"
+  # Docker image tags
+  - ":[a-zA-Z0-9._-]+(?=\\s|$|\\))"
+  # Environment variables
+  - "\\$\\{?[A-Z_][A-Z0-9_]*\\}?"
+  # Rust crate features
+  - "\\b[a-z_]+::[a-z_]+\\b"
+  # IP addresses
+  - "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(/\\d{1,2})?\\b"
+  # Base64 strings (long alphanumeric)
+  - "[A-Za-z0-9+/]{40,}={0,2}"
+  # Hex color codes
+  - "#[0-9A-Fa-f]{6}\\b"
+  - "#[0-9A-Fa-f]{3}\\b"
+
+# Language settings per file type
+languageSettings:
+  - languageId: markdown
+    locale: en
+    dictionaries:
+      - inferadb
+      - tech-terms
+
+# Override settings for specific paths
+overrides:
+  # Code examples are more lenient
+  - filename: "**/examples/**"
+    ignoreRegExpList:
+      - ".*"
+  # Mermaid diagrams have short names
+  - filename: "**/*.mmd"
+    ignoreRegExpList:
+      - "\\b[A-Z]{1,4}\\b"
+
+# Minimum word length to check
+minWordLength: 3
+
+# Maximum number of problems per file
+maxNumberOfProblems: 100
+
+# Allow compound words
+allowCompoundWords: true
+
+# Case sensitivity
+caseSensitive: false
+
+# Report unknown words
+reportUnknownWords: true
+
+# Suggestions
+numSuggestions: 5
+suggestionsTimeout: 500
+
+# Feature flags
+enableGlobDot: false
+enableFiletypes: []
+
+# Words to always flag as errors (even if in dictionary)
+flagWords:
+  - "hte"  # Common typo for "the"
+  - "teh"  # Common typo for "the"
+  - "taht" # Common typo for "that"
+  - "todo" # Should use TODO or proper task tracking
+
+# User-defined patterns (names for regex patterns)
+patterns:
+  - name: mermaid-block
+    pattern: "```mermaid[\\s\\S]*?```"
+  - name: praxis-block
+    pattern: "```praxis[\\s\\S]*?```"
+  - name: json-block
+    pattern: "```json[\\s\\S]*?```"
+  - name: yaml-block
+    pattern: "```ya?ml[\\s\\S]*?```"
+
+# Ignore these patterns
+ignoreRegExpList:
+  - mermaid-block
+  - praxis-block
+  - json-block
+  - yaml-block

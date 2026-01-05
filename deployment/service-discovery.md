@@ -22,28 +22,54 @@ InferaDB supports dynamic service discovery for production deployments with mult
 
 ### Engine - Control Discovery
 
+Configure via Helm values or environment variables:
+
 ```yaml
-# engine/config.yaml
-auth:
+# engine/helm/values.yaml
+discovery:
+  mode: "kubernetes" # Options: "none", "kubernetes", "tailscale"
+  cacheTtl: 300
   control:
-    discovery_mode: "kubernetes_service"
-    service_name: "inferadb-control"
+    serviceName: "inferadb-control"
     namespace: "inferadb"
-    port: 9090
-    refresh_interval_seconds: 30
+    port: 9092 # Control mesh API port
+```
+
+Or via environment variables:
+
+```bash
+INFERADB__AUTH__DISCOVERY__MODE=kubernetes
+INFERADB__AUTH__DISCOVERY__CONTROL__SERVICE_NAME=inferadb-control
+INFERADB__AUTH__DISCOVERY__CONTROL__NAMESPACE=inferadb
 ```
 
 ### Control - Engine Discovery
 
+Configure via Helm values or config file:
+
 ```yaml
-# control/config.yaml
-cache_invalidation:
-  discovery_mode: "kubernetes_pods"
-  label_selector: "app=inferadb-engine"
-  namespace: "inferadb"
-  port: 8080
-  refresh_interval_seconds: 30
+# control/helm/values.yaml
+discovery:
+  mode: "kubernetes"
+  cacheTtl: 30
+  engine:
+    serviceName: "inferadb-engine"
+    namespace: "inferadb"
+    port: 8080
+    labelSelector: "app.kubernetes.io/name=inferadb-engine"
 ```
+
+Or via environment variables:
+
+```bash
+INFERADB_CTRL__CACHE_INVALIDATION__DISCOVERY__MODE__TYPE=kubernetes
+INFERADB_CTRL__CACHE_INVALIDATION__DISCOVERY__CACHE_TTL=30
+```
+
+> **Note**: Both Engine and Control now have Helm charts available:
+>
+> - Engine: `engine/helm/`
+> - Control: `control/helm/`
 
 ## RBAC Requirements
 

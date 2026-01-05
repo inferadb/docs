@@ -1,8 +1,8 @@
-# InferaDB Documentation
-
-Technical specifications, deployment guides, and design proposals.
-
-## Component Documentation
+<div align="center">
+    <p><a href="https://inferadb.com"><img src=".github/inferadb.png" width="100" /></a></p>
+    <h1>InferaDB Documentation</h1>
+    <p>Technical specifications, deployment guides, and design proposals</p>
+</div>
 
 Most documentation lives within component repositories:
 

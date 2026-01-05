@@ -1,0 +1,40 @@
+# InferaDB Technical Terms
+# Suggests proper terminology for technical concepts
+
+extends: substitution
+message: "Consider using '%s' instead of '%s' for technical accuracy."
+level: warning
+ignorecase: true
+
+swap:
+  # Authorization terminology
+  'permission check': 'authorization check'
+  'permission query': 'authorization query'
+  'access check': 'authorization check'
+  'access query': 'authorization query'
+  'role based access control': 'RBAC'
+  'attribute based access control': 'ABAC'
+  'relationship based access control': 'ReBAC'
+
+  # InferaDB concepts
+  'policy decision point': 'PDP'
+  'policy enforcement point': 'PEP'
+  'policy administration point': 'PAP'
+  'policy information point': 'PIP'
+
+  # Data terminology
+  'relationship tuple': 'tuple'
+  'relation tuple': 'tuple'
+  'access tuple': 'tuple'
+
+  # Architecture terms
+  'master': 'primary'
+  'slave': 'replica'
+  'whitelist': 'allowlist'
+  'blacklist': 'blocklist'
+
+  # API terminology
+  'end point': 'endpoint'
+  'end-point': 'endpoint'
+  'api key': 'API key'
+  'api-key': 'API key'

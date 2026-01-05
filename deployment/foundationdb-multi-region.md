@@ -92,6 +92,13 @@ terraform apply
 
 See [terraform/examples/aws-multi-region/README.md](../../terraform/examples/aws-multi-region/README.md) for details.
 
+> **Note on Terraform Locations:**
+>
+> - `terraform/` (repo root) - Example configurations and reusable modules for quick-start deployments
+> - `deploy/terraform/` - Production infrastructure with environment-specific configs, GitOps integration, and multi-provider support
+>
+> For production deployments, see [deploy/README.md](../../deploy/README.md).
+
 ### Option 2: Kubernetes Manifests
 
 For manual deployment using kubectl:
@@ -198,7 +205,6 @@ flowchart TB
 ```
 
 1. **Create auth key** at <https://login.tailscale.com/admin/settings/keys>
-
    - Make it reusable
    - Add tags: `tag:fdb`, `tag:inferadb-engine`
 
@@ -399,3 +405,7 @@ After the original primary recovers:
 - [Fearless DR Documentation](https://apple.github.io/foundationdb/configuration.html#fearless-dr)
 - [FDB Kubernetes Operator](https://github.com/FoundationDB/fdb-kubernetes-operator)
 - [Tailscale Kubernetes](https://tailscale.com/kb/1185/kubernetes)
+
+## Related Tools
+
+- **[Terraform Provider for InferaDB](../../terraform-provider-inferadb/README.md)**: Manage Control Plane resources (organizations, vaults, clients, grants) via Terraform. Use this for provisioning application-level resources after infrastructure deployment.

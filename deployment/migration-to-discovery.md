@@ -12,10 +12,28 @@ This guide covers migrating from static configuration to dynamic service discove
 
 ## Migration Steps
 
-### 1. Deploy RBAC Resources
+### 1. Deploy Using Helm (Recommended)
+
+Both Engine and Control have Helm charts that include RBAC configuration:
 
 ```bash
-# Apply RBAC for both services
+# Deploy Engine with discovery enabled
+helm install inferadb-engine ./engine/helm \
+  --namespace inferadb \
+  --create-namespace \
+  --set discovery.mode=kubernetes
+
+# Deploy Control with discovery enabled
+helm install inferadb-control ./control/helm \
+  --namespace inferadb \
+  --set discovery.mode=kubernetes
+```
+
+### 1b. Alternative: Manual RBAC
+
+If not using Helm, apply RBAC manually:
+
+```bash
 kubectl apply -f engine/k8s/rbac.yaml
 kubectl apply -f control/k8s/rbac.yaml
 ```
@@ -27,7 +45,7 @@ kubectl apply -f control/k8s/rbac.yaml
 ```bash
 # Update values.yaml
 helm upgrade inferadb-engine ./engine/helm \
-  --set discovery.mode=kubernetes_service \
+  --set discovery.mode=kubernetes \
   --set discovery.control.serviceName=inferadb-control
 ```
 
@@ -36,8 +54,8 @@ helm upgrade inferadb-engine ./engine/helm \
 ```bash
 # Update deployment
 kubectl set env deployment/inferadb-engine \
-  INFERADB__AUTH__CONTROL__DISCOVERY_MODE=kubernetes_service \
-  INFERADB__AUTH__CONTROL__SERVICE_NAME=inferadb-control
+  INFERADB__AUTH__DISCOVERY__MODE=kubernetes \
+  INFERADB__AUTH__DISCOVERY__CONTROL__SERVICE_NAME=inferadb-control
 ```
 
 ### 3. Verify Discovery
@@ -63,9 +81,11 @@ If issues occur, revert to static mode:
 
 ```bash
 helm upgrade inferadb-engine ./engine/helm \
-  --set discovery.mode=static \
-  --set discovery.control.staticUrl=http://inferadb-control:9090
+  --set discovery.mode=none \
+  --set config.mesh.url=http://inferadb-control:9092
 ```
+
+> **Note**: When `discovery.mode=none`, configure the Control URL directly via `config.mesh.url`.
 
 ## Backward Compatibility
 

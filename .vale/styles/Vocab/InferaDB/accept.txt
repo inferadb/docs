@@ -1,0 +1,32 @@
+# InferaDB Vocabulary - Accepted Terms
+# These words will be accepted by Vale's spelling checks
+
+# Product names
+InferaDB
+Infera
+IPL
+ReBAC
+AuthZEN
+PDP
+
+# Related products
+Zanzibar
+SpacetimeDB
+OpenFGA
+SpiceDB
+AuthZed
+FoundationDB
+Tailscale
+CockroachDB
+
+# Technical terms
+WASM
+WebAssembly
+mTLS
+gRPC
+protobuf
+
+# Programming
+Rust
+TypeScript
+JavaScript

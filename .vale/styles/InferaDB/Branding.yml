@@ -1,0 +1,46 @@
+# InferaDB Branding Rules
+# Ensures consistent use of product names and terminology
+
+extends: substitution
+message: "Use '%s' instead of '%s' for consistent branding."
+level: error
+ignorecase: false
+
+swap:
+  # Product name variations
+  'inferadb': 'InferaDB'
+  'Inferadb': 'InferaDB'
+  'INFERADB': 'InferaDB'
+  'infera db': 'InferaDB'
+  'Infera DB': 'InferaDB'
+  'infera-db': 'InferaDB'
+  'Infera-DB': 'InferaDB'
+
+  # IPL variations
+  'ipl': 'IPL'
+  'Ipl': 'IPL'
+  'infera policy language': 'Infera Policy Language (IPL)'
+
+  # Related products
+  'openfga': 'OpenFGA'
+  'Openfga': 'OpenFGA'
+  'spicedb': 'SpiceDB'
+  'Spicedb': 'SpiceDB'
+  'authzed': 'AuthZed'
+  'Authzed': 'AuthZed'
+
+  # Technical terms
+  'rebac': 'ReBAC'
+  'Rebac': 'ReBAC'
+  'REBAC': 'ReBAC'
+  'authzen': 'AuthZEN'
+  'Authzen': 'AuthZEN'
+  'AUTHZEN': 'AuthZEN'
+
+  # Infrastructure
+  'foundationdb': 'FoundationDB'
+  'Foundationdb': 'FoundationDB'
+  'kubernetes': 'Kubernetes'
+  'KUBERNETES': 'Kubernetes'
+  'tailscale': 'Tailscale'
+  'TAILSCALE': 'Tailscale'

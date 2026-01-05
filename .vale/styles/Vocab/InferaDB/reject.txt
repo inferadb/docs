@@ -1,0 +1,24 @@
+# InferaDB Vocabulary - Rejected Terms
+# These words/phrases will always be flagged as errors
+
+# Incorrect branding
+inferaDB
+INFERADB
+infera-db
+Infera-DB
+infera db
+Infera DB
+
+# Deprecated terminology
+master
+slave
+whitelist
+blacklist
+sanity check
+dummy
+
+# Common misspellings of InferaDB terms
+praxsis
+praxes
+rebak
+authzn

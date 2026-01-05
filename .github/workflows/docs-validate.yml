@@ -1,0 +1,457 @@
+# InferaDB Documentation Validation Workflow
+# Comprehensive checks for markdown quality, links, spelling, and security
+
+name: Documentation Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "**/*.mdx"
+      - ".markdownlint.yaml"
+      - ".cspell/**"
+      - ".vale.ini"
+      - ".vale/**"
+      - ".gitleaks.toml"
+      - "lychee.toml"
+      - ".github/workflows/docs-validate.yml"
+      - ".github/scripts/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "**/*.mdx"
+      - ".markdownlint.yaml"
+      - ".cspell/**"
+      - ".vale.ini"
+      - ".vale/**"
+      - ".gitleaks.toml"
+      - "lychee.toml"
+      - ".github/workflows/docs-validate.yml"
+      - ".github/scripts/**"
+  workflow_dispatch:
+    inputs:
+      check_external_links:
+        description: "Check external links (slower)"
+        required: false
+        default: "false"
+        type: boolean
+
+# Cancel in-progress runs for PRs, queue for main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Minimal permissions - principle of least privilege
+permissions:
+  contents: read
+
+env:
+  MARKDOWNLINT_VERSION: "0.43.0"
+  CSPELL_VERSION: "8.17.0"
+  VALE_VERSION: "3.9.4"
+  LYCHEE_VERSION: "0.18.0"
+
+jobs:
+  # ============================================================================
+  # Markdown Linting (Blocking)
+  # ============================================================================
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: "20"
+
+      - name: Install markdownlint-cli2
+        env:
+          LINT_VERSION: ${{ env.MARKDOWNLINT_VERSION }}
+        run: npm install -g "markdownlint-cli2@${LINT_VERSION}"
+
+      - name: Run markdownlint
+        run: |
+          markdownlint-cli2 "**/*.md" "#node_modules" "#.git" 2>&1 | tee lint-results.txt
+        continue-on-error: true
+
+      - name: Check lint results
+        run: |
+          if grep -q "error" lint-results.txt; then
+            echo "::error::Markdown lint errors found"
+            exit 1
+          fi
+
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: markdown-lint-results
+          path: lint-results.txt
+          retention-days: 7
+
+  # ============================================================================
+  # Spell Checking (Non-blocking)
+  # ============================================================================
+  spell-check:
+    name: Spell Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: "20"
+
+      - name: Cache cspell dictionaries
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: ~/.cspell-cache
+          key: cspell-${{ hashFiles('.cspell/**') }}
+          restore-keys: |
+            cspell-
+
+      - name: Install cspell
+        env:
+          SPELL_VERSION: ${{ env.CSPELL_VERSION }}
+        run: npm install -g "cspell@${SPELL_VERSION}"
+
+      - name: Run cspell
+        run: |
+          cspell --config .cspell/cspell.yaml "**/*.md" 2>&1 | tee spell-results.txt
+        continue-on-error: true
+
+      - name: Upload spell check results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: spell-check-results
+          path: spell-results.txt
+          retention-days: 7
+
+  # ============================================================================
+  # Prose Linting (Non-blocking)
+  # ============================================================================
+  prose-lint:
+    name: Prose Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Install Vale
+        env:
+          VALE_VER: ${{ env.VALE_VERSION }}
+        run: |
+          wget -qO- "https://github.com/errata-ai/vale/releases/download/v${VALE_VER}/vale_${VALE_VER}_Linux_64-bit.tar.gz" | tar xz -C /usr/local/bin vale
+
+      - name: Sync Vale packages
+        run: vale sync
+
+      - name: Run Vale
+        run: |
+          vale --output=line --minAlertLevel=warning . 2>&1 | tee prose-results.txt
+        continue-on-error: true
+
+      - name: Upload prose lint results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: prose-lint-results
+          path: prose-results.txt
+          retention-days: 7
+
+  # ============================================================================
+  # Internal Link Validation (Blocking)
+  # ============================================================================
+  link-internal:
+    name: Internal Links
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: "20"
+
+      - name: Install markdown-link-check
+        run: npm install -g markdown-link-check@3.14.2
+
+      - name: Create link check config
+        run: |
+          cat > .markdown-link-check.json << 'EOF'
+          {
+            "ignorePatterns": [
+              { "pattern": "^https?://" },
+              { "pattern": "^mailto:" },
+              { "pattern": "^tel:" }
+            ],
+            "replacementPatterns": [],
+            "httpHeaders": [],
+            "timeout": "5s",
+            "retryOn429": false,
+            "retryCount": 1,
+            "fallbackRetryDelay": "5s",
+            "aliveStatusCodes": [200, 206]
+          }
+          EOF
+
+      - name: Check internal links
+        run: |
+          find . -name "*.md" -not -path "./node_modules/*" -not -path "./.git/*" | while read -r file; do
+            echo "Checking: $file"
+            markdown-link-check --config .markdown-link-check.json "$file" || true
+          done 2>&1 | tee internal-links.txt
+
+      - name: Check for broken links
+        run: |
+          if grep -q "dead" internal-links.txt || grep -q "ERROR" internal-links.txt; then
+            echo "::error::Broken internal links found"
+            exit 1
+          fi
+
+      - name: Upload link check results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: internal-link-results
+          path: internal-links.txt
+          retention-days: 7
+
+  # ============================================================================
+  # External Link Validation (Non-blocking, Optional)
+  # ============================================================================
+  link-external:
+    name: External Links
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'workflow_dispatch' && inputs.check_external_links == 'true'
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Restore lychee cache
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: .lycheecache
+          key: lychee-cache-${{ github.sha }}
+          restore-keys: |
+            lychee-cache-
+
+      - name: Install lychee
+        env:
+          LYCHEE_VER: ${{ env.LYCHEE_VERSION }}
+        run: |
+          wget -qO- "https://github.com/lycheeverse/lychee/releases/download/v${LYCHEE_VER}/lychee-v${LYCHEE_VER}-x86_64-unknown-linux-gnu.tar.gz" | tar xz -C /usr/local/bin lychee
+
+      - name: Check external links
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          lychee --config lychee.toml --cache --max-cache-age 7d "**/*.md" 2>&1 | tee external-links.txt
+        continue-on-error: true
+
+      - name: Upload external link results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: external-link-results
+          path: external-links.txt
+          retention-days: 7
+
+  # ============================================================================
+  # Security Scan (Blocking)
+  # ============================================================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  # ============================================================================
+  # Structure Validation (Blocking)
+  # ============================================================================
+  structure:
+    name: Structure Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run structure validation
+        run: |
+          chmod +x .github/scripts/validate-structure.sh
+          .github/scripts/validate-structure.sh 2>&1 | tee structure-results.txt
+
+      - name: Upload structure results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: structure-results
+          path: structure-results.txt
+          retention-days: 7
+
+  # ============================================================================
+  # Overall status check - required for branch protection
+  # ============================================================================
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      [
+        markdown-lint,
+        spell-check,
+        prose-lint,
+        link-internal,
+        security-scan,
+        structure,
+      ]
+    if: always()
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          path: results
+        continue-on-error: true
+
+      - name: Generate summary
+        env:
+          LINT_RESULT: ${{ needs.markdown-lint.result }}
+          SPELL_RESULT: ${{ needs.spell-check.result }}
+          PROSE_RESULT: ${{ needs.prose-lint.result }}
+          LINK_RESULT: ${{ needs.link-internal.result }}
+          SECURITY_RESULT: ${{ needs.security-scan.result }}
+          STRUCTURE_RESULT: ${{ needs.structure.result }}
+        run: |
+          echo "## Documentation Validation Report" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Job Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$LINT_RESULT" = "success" ]; then
+            echo "| Markdown Lint | Pass |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Markdown Lint | Fail |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$SPELL_RESULT" = "success" ]; then
+            echo "| Spell Check | Pass |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Spell Check | Warn |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$PROSE_RESULT" = "success" ]; then
+            echo "| Prose Lint | Pass |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Prose Lint | Warn |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$LINK_RESULT" = "success" ]; then
+            echo "| Internal Links | Pass |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Internal Links | Fail |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$SECURITY_RESULT" = "success" ]; then
+            echo "| Security Scan | Pass |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Security Scan | Fail |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "$STRUCTURE_RESULT" = "success" ]; then
+            echo "| Structure | Pass |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Structure | Fail |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check blocking jobs
+        env:
+          LINT_RESULT: ${{ needs.markdown-lint.result }}
+          LINK_RESULT: ${{ needs.link-internal.result }}
+          SECURITY_RESULT: ${{ needs.security-scan.result }}
+          STRUCTURE_RESULT: ${{ needs.structure.result }}
+        run: |
+          if [ "$LINT_RESULT" != "success" ] || \
+             [ "$LINK_RESULT" != "success" ] || \
+             [ "$SECURITY_RESULT" != "success" ] || \
+             [ "$STRUCTURE_RESULT" != "success" ]; then
+            echo "::error::One or more blocking checks failed"
+            exit 1
+          fi
+          echo "All blocking checks passed!"

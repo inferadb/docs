@@ -1,0 +1,37 @@
+# InferaDB Jargon Detection
+# Flags overly technical jargon that may confuse readers
+
+extends: existence
+message: "Consider explaining '%s' or linking to a glossary for readers unfamiliar with the term."
+level: suggestion
+ignorecase: true
+
+tokens:
+  # Authorization jargon that needs explanation
+  - 'Zanzibar'
+  - 'tuple space'
+  - 'graph traversal'
+  - 'linearizable'
+  - 'causal consistency'
+  - 'version vectors'
+  - 'snapshot isolation'
+  - 'revision token'
+  - 'zookie'
+
+  # Infrastructure jargon
+  - 'sidecar'
+  - 'service mesh'
+  - 'control plane'
+  - 'data plane'
+  - 'cell architecture'
+
+  # Cryptography terms
+  - 'mTLS'
+  - 'WebAuthn'
+  - 'passkeys'
+
+# Only flag on first occurrence
+action:
+  name: suggest
+  params:
+    - "Consider adding a brief explanation or link to documentation"

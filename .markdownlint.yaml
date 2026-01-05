@@ -1,0 +1,255 @@
+# InferaDB Documentation - Markdownlint Configuration
+# https://github.com/DavidAnson/markdownlint
+# Rule reference: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# Default: all rules enabled
+default: true
+
+# MD001: Heading levels should only increment by one level at a time
+# Rationale: Proper document structure for accessibility and TOC generation
+MD001: true
+
+# MD003: Heading style - enforce ATX style (# headings)
+# Rationale: Consistent with style-guide.md requirements
+MD003:
+  style: "atx"
+
+# MD004: Unordered list style - use dashes
+# Rationale: Consistency across all documents
+MD004:
+  style: "dash"
+
+# MD007: Unordered list indentation
+# Rationale: 2-space indent for nested lists
+MD007:
+  indent: 2
+
+# MD009: No trailing spaces
+# Rationale: Clean formatting, prevents diff noise
+MD009:
+  br_spaces: 2 # Allow 2 trailing spaces for hard line breaks
+  strict: false
+
+# MD010: No hard tabs
+# Rationale: Consistent indentation across editors
+MD010:
+  code_blocks: false # Allow tabs in code blocks (some languages use them)
+
+# MD012: Multiple consecutive blank lines
+# Rationale: Clean formatting
+MD012:
+  maximum: 2
+
+# MD013: Line length
+# Rationale: Readable in editors, but flexible for tables/URLs
+MD013:
+  line_length: 120
+  heading_line_length: 120
+  code_block_line_length: 200 # More lenient for code examples
+  code_blocks: false # Don't check code blocks
+  tables: false # Don't check tables (often have long content)
+
+# MD014: Dollar signs used before commands without showing output
+# Rationale: Consistent command examples
+MD014: true
+
+# MD018: No space after hash on atx style heading
+# Rationale: Proper markdown formatting
+MD018: true
+
+# MD019: Multiple spaces after hash on atx style heading
+# Rationale: Clean formatting
+MD019: true
+
+# MD022: Headings should be surrounded by blank lines
+# Rationale: Readability and proper parsing
+MD022:
+  lines_above: 1
+  lines_below: 1
+
+# MD023: Headings must start at the beginning of the line
+# Rationale: Proper markdown parsing
+MD023: true
+
+# MD024: Multiple headings with the same content
+# Rationale: Allow same heading in different sections (e.g., "Overview" under multiple parents)
+MD024:
+  siblings_only: true
+
+# MD025: Multiple top-level headings in the same document
+# Rationale: Single h1 per document
+MD025: true
+
+# MD026: Trailing punctuation in heading
+# Rationale: Clean headings (allow ? for FAQ sections)
+MD026:
+  punctuation: ".,;:!"
+
+# MD027: Multiple spaces after blockquote symbol
+# Rationale: Clean formatting
+MD027: true
+
+# MD028: Blank line inside blockquote
+# Rationale: Intentional blockquote structure
+MD028: false
+
+# MD029: Ordered list item prefix
+# Rationale: Use ordered numbers for proper rendering
+MD029:
+  style: "ordered"
+
+# MD030: Spaces after list markers
+# Rationale: Consistent formatting
+MD030:
+  ul_single: 1
+  ol_single: 1
+  ul_multi: 1
+  ol_multi: 1
+
+# MD031: Fenced code blocks should be surrounded by blank lines
+# Rationale: Proper parsing and readability
+MD031: true
+
+# MD032: Lists should be surrounded by blank lines
+# Rationale: Proper parsing
+MD032: true
+
+# MD033: Inline HTML
+# Rationale: Allow specific HTML for badges, images, and layout
+MD033:
+  allowed_elements:
+    - "div"
+    - "p"
+    - "a"
+    - "img"
+    - "br"
+    - "h1"
+    - "details"
+    - "summary"
+    - "kbd"
+    - "sub"
+    - "sup"
+
+# MD034: Bare URLs
+# Rationale: URLs should be properly formatted as links
+MD034: true
+
+# MD035: Horizontal rule style
+# Rationale: Consistent separator style
+MD035:
+  style: "---"
+
+# MD036: Emphasis used instead of a heading
+# Rationale: Prevent **Heading** patterns (per style guide)
+MD036:
+  punctuation: ".,;:!?"
+
+# MD037: Spaces inside emphasis markers
+# Rationale: Clean formatting
+MD037: true
+
+# MD038: Spaces inside code span elements
+# Rationale: Clean inline code
+MD038: true
+
+# MD039: Spaces inside link text
+# Rationale: Clean link formatting
+MD039: true
+
+# MD040: Fenced code blocks should have a language specified
+# Rationale: Syntax highlighting and style guide requirement
+MD040: true
+
+# MD041: First line in a file should be a top-level heading
+# Rationale: Document structure (disable for files with frontmatter)
+MD041: false # Disabled because we use frontmatter
+
+# MD042: No empty links
+# Rationale: Links must have content
+MD042: true
+
+# MD043: Required heading structure
+# Rationale: Disabled - structure varies by document type
+MD043: false
+
+# MD044: Proper names should have correct capitalization
+# Rationale: Consistent branding
+MD044:
+  names:
+    - "InferaDB"
+    - "GitHub"
+    - "Kubernetes"
+    - "Docker"
+    - "Rust"
+    - "TypeScript"
+    - "JavaScript"
+    - "WebAssembly"
+    - "WASM"
+    - "FoundationDB"
+    - "PostgreSQL"
+    - "Tailscale"
+  code_blocks: false
+  html_elements: false
+
+# MD045: Images should have alternate text
+# Rationale: Accessibility requirement
+MD045: true
+
+# MD046: Code block style
+# Rationale: Use fenced code blocks consistently
+MD046:
+  style: "fenced"
+
+# MD047: Files should end with a single newline character
+# Rationale: POSIX compliance and clean diffs
+MD047: true
+
+# MD048: Code fence style
+# Rationale: Use backticks consistently
+MD048:
+  style: "backtick"
+
+# MD049: Emphasis style should be consistent
+# Rationale: Use asterisks for emphasis
+MD049:
+  style: "asterisk"
+
+# MD050: Strong style should be consistent
+# Rationale: Use asterisks for bold
+MD050:
+  style: "asterisk"
+
+# MD051: Link fragments should be valid
+# Rationale: Internal anchor links must resolve
+MD051: true
+
+# MD052: Reference links and images should use a label that is defined
+# Rationale: No dangling references
+MD052: true
+
+# MD053: Link and image reference definitions should be needed
+# Rationale: No unused references
+MD053: true
+
+# MD054: Link and image style
+# Rationale: Consistent link formatting
+MD054:
+  autolink: true
+  inline: true
+  full: true
+  collapsed: true
+  shortcut: true
+  url_inline: true
+
+# MD055: Table pipe style
+# Rationale: Leading and trailing pipes for consistency
+MD055:
+  style: "leading_and_trailing"
+
+# MD056: Table column count
+# Rationale: All rows must have same column count
+MD056: true
+
+# MD058: Tables should be surrounded by blank lines
+# Rationale: Proper parsing and readability
+MD058: true

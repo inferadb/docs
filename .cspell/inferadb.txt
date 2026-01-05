@@ -1,0 +1,376 @@
+# InferaDB-Specific Technical Terms
+# Add new terms alphabetically within each section
+# Format: one word per line, case-insensitive matching
+
+# =============================================================================
+# InferaDB Product Terms
+# =============================================================================
+Infera
+InferaDB
+inferadb
+IPL
+praxis
+ReBAC
+AuthZEN
+PDP
+
+# =============================================================================
+# InferaDB Components
+# =============================================================================
+AtlasDocs
+PolicyBranchManager
+TupleStore
+ModuleRegistry
+ReplicationOrchestrator
+TenantRegistry
+SchemaStore
+
+# =============================================================================
+# InferaDB CLI Commands
+# =============================================================================
+infera
+
+# =============================================================================
+# InferaDB Configuration Keys
+# =============================================================================
+INFERADB__ENGINE__HOST
+INFERADB__ENGINE__PORT
+INFERADB__AUTH__DISCOVERY__MODE__TYPE
+INFERADB__AUTH__DISCOVERY__CACHE_TTL_SECONDS
+INFERADB__AUTH__CONTROL_URL
+INFERADB_CTRL__DATABASE__FDB_CLUSTER_FILE
+
+# =============================================================================
+# Related Projects and Standards
+# =============================================================================
+Zanzibar
+SpacetimeDB
+OpenFGA
+SpiceDB
+AuthZed
+OpenID
+
+# =============================================================================
+# Authorization Concepts
+# =============================================================================
+RBAC
+ABAC
+authz
+authn
+tuple
+tuples
+Composable
+composability
+Auditability
+auditable
+Deterministic
+determinism
+
+# =============================================================================
+# Cryptography and Security
+# =============================================================================
+mTLS
+TLS
+WebAuthn
+passkeys
+FIDO
+FIDO2
+HMAC
+SHA
+RSA
+ECDSA
+EdDSA
+JWK
+JWKS
+JWT
+JWTs
+OAuth
+OIDC
+PKCE
+SAML
+
+# =============================================================================
+# Infrastructure
+# =============================================================================
+FoundationDB
+FDB
+CockroachDB
+Tailscale
+headscale
+WireGuard
+Cilium
+Istio
+Envoy
+NATS
+etcd
+CoreDNS
+
+# =============================================================================
+# Kubernetes
+# =============================================================================
+k8s
+kubectl
+kubelet
+kube
+kubeconfig
+kubeadm
+StatefulSet
+DaemonSet
+ConfigMap
+ServiceAccount
+ClusterRole
+RoleBinding
+ClusterRoleBinding
+PersistentVolume
+PersistentVolumeClaim
+Ingress
+IngressController
+LoadBalancer
+NodePort
+ClusterIP
+Headless
+HPA
+VPA
+PodDisruptionBudget
+PDB
+Taints
+Tolerations
+Affinity
+AntiAffinity
+Helm
+Tilt
+Skaffold
+Kustomize
+FluxCD
+
+# =============================================================================
+# Container and Runtime
+# =============================================================================
+WASM
+WebAssembly
+wasm32
+containerd
+cri
+OCI
+cgroup
+cgroups
+seccomp
+AppArmor
+SELinux
+
+# =============================================================================
+# Rust Terms
+# =============================================================================
+rustc
+rustup
+rustfmt
+Clippy
+clippy
+serde
+tokio
+async
+await
+impl
+struct
+enum
+trait
+Vec
+HashMap
+BTreeMap
+Arc
+Mutex
+RwLock
+RefCell
+Rc
+Box
+Pin
+Future
+Send
+Sync
+Sized
+Unpin
+anyhow
+thiserror
+tracing
+tracing_subscriber
+hyper
+axum
+tonic
+prost
+sqlx
+deadpool
+
+# =============================================================================
+# Development Tools
+# =============================================================================
+VSCode
+JetBrains
+rustanalyzer
+rustdoc
+Cargo
+toml
+pre-commit
+commitlint
+husky
+lefthook
+markdownlint
+cspell
+textlint
+vale
+lychee
+mdx
+
+# =============================================================================
+# CI/CD
+# =============================================================================
+workflow
+workflows
+GitHub
+GitLab
+Buildkite
+CircleCI
+Dependabot
+Renovate
+Codecov
+SonarQube
+Trivy
+Grype
+Syft
+SBOM
+SLSA
+Sigstore
+cosign
+rekor
+fulcio
+
+# =============================================================================
+# Observability
+# =============================================================================
+OpenTelemetry
+OTLP
+otel
+Prometheus
+PromQL
+Grafana
+Loki
+Tempo
+Jaeger
+Zipkin
+DataDog
+Sentry
+PagerDuty
+OpsGenie
+VictorOps
+traceId
+spanId
+tracestate
+traceparent
+
+# =============================================================================
+# Networking
+# =============================================================================
+gRPC
+protobuf
+proto
+REST
+RESTful
+GraphQL
+WebSocket
+WebSockets
+SSE
+HTTP2
+HTTP3
+QUIC
+ALPN
+SNI
+SAN
+mDNS
+CIDR
+BGP
+DNS
+CNAME
+AAAA
+PTR
+SRV
+anycast
+multicast
+unicast
+
+# =============================================================================
+# Database Terms
+# =============================================================================
+ACID
+CAP
+CRDT
+CRDTs
+LSM
+SSTable
+memtable
+compaction
+keyspace
+namespace
+namespaces
+linearizable
+serializable
+snapshot
+snapshotting
+replication
+sharding
+partitioning
+denormalization
+
+# =============================================================================
+# File Formats and Config
+# =============================================================================
+JSON
+YAML
+yml
+TOML
+HCL
+Jsonnet
+Dhall
+CUE
+ini
+dotenv
+env
+
+# =============================================================================
+# Miscellaneous Technical Terms
+# =============================================================================
+localhost
+loopback
+noop
+stderr
+stdout
+stdin
+EOF
+regex
+regexp
+glob
+globbing
+semver
+calver
+changelog
+frontmatter
+metadata
+inline
+inlined
+webhook
+webhooks
+healthcheck
+liveness
+readiness
+startup
+graceful
+lifecycle
+idempotent
+idempotency
+middleware
+upstream
+downstream
+sidecar
+sidecars
+failover
+fallback
+backoff
+jitter

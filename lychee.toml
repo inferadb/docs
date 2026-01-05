@@ -1,0 +1,189 @@
+# InferaDB Documentation - Lychee Link Checker Configuration
+# https://lychee.cli.rs/
+# https://github.com/lycheeverse/lychee
+
+# ============================================================================
+# General Settings
+# ============================================================================
+
+# Maximum number of concurrent requests
+max_concurrency = 32
+
+# Maximum number of redirects to follow
+max_redirects = 10
+
+# Maximum number of retries per request
+max_retries = 3
+
+# Timeout for each request in seconds
+timeout = 30
+
+# User-Agent header
+user_agent = "Mozilla/5.0 (compatible; InferaDB-Docs-Bot/1.0; +https://github.com/inferadb/docs)"
+
+# Accept header (prefer HTML)
+accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+# Request method (GET is more reliable than HEAD for some servers)
+method = "GET"
+
+# ============================================================================
+# Caching
+# ============================================================================
+
+# Enable caching of successful results
+cache = true
+
+# Cache duration in seconds (7 days)
+max_cache_age = 604800
+
+# ============================================================================
+# Retry Configuration
+# ============================================================================
+
+# Retry wait time between attempts (exponential backoff)
+retry_wait_time = 5
+
+# Backoff multiplier
+# retry_wait_time * 2^retry_count
+
+# ============================================================================
+# Rate Limiting
+# ============================================================================
+
+# Rate limit per second (prevents being blocked)
+# Different limits for different domains can be set
+
+# ============================================================================
+# Exclusions
+# ============================================================================
+
+# URLs to exclude from checking
+exclude = [
+    # Localhost and private IPs
+    "^https?://localhost",
+    "^https?://127\\.0\\.0\\.1",
+    "^https?://0\\.0\\.0\\.0",
+    "^https?://10\\.",
+    "^https?://172\\.(1[6-9]|2[0-9]|3[0-1])\\.",
+    "^https?://192\\.168\\.",
+
+    # Example domains
+    "^https?://example\\.com",
+    "^https?://example\\.org",
+    "^https?://example\\.net",
+    "^https?://(www\\.)?example\\.",
+
+    # Placeholder URLs
+    "^https?://your-",
+    "^https?://my-",
+    "^https?://.*\\.local",
+
+    # Known problematic URLs (rate limited or require auth)
+    "^https?://twitter\\.com",
+    "^https?://x\\.com",
+    "^https?://linkedin\\.com",
+
+    # Internal Kubernetes DNS
+    "^https?://.*\\.svc\\.cluster\\.local",
+
+    # Mail links
+    "^mailto:",
+
+    # Tel links
+    "^tel:",
+
+    # JavaScript links
+    "^javascript:",
+
+    # Fragment-only links (handled by markdown-link-check)
+    "^#",
+]
+
+# File patterns to exclude
+exclude_path = [
+    # Node modules
+    "**/node_modules/**",
+
+    # Build artifacts
+    "**/dist/**",
+    "**/build/**",
+    "**/target/**",
+
+    # Version control
+    "**/.git/**",
+
+    # Cache directories
+    "**/.cache/**",
+    "**/cache/**",
+
+    # Temporary files
+    "**/tmp/**",
+    "**/temp/**",
+]
+
+# ============================================================================
+# Accept Status Codes
+# ============================================================================
+
+# HTTP status codes to accept as valid
+accept = [
+    200,  # OK
+    201,  # Created
+    204,  # No Content
+    206,  # Partial Content
+    301,  # Moved Permanently
+    302,  # Found
+    303,  # See Other
+    307,  # Temporary Redirect
+    308,  # Permanent Redirect
+]
+
+# ============================================================================
+# Domain-Specific Settings
+# ============================================================================
+
+# GitHub has rate limits - be gentle
+# [[headers]]
+# pattern = "github\\.com"
+# headers = { "Authorization" = "token ${GITHUB_TOKEN}" }
+
+# ============================================================================
+# Output Settings
+# ============================================================================
+
+# Output format: compact, detailed, json, markdown
+# format = "markdown"
+
+# Include source location in output
+include_source = true
+
+# Show progress bar
+progress = true
+
+# Verbose output
+verbose = false
+
+# ============================================================================
+# Additional Checks
+# ============================================================================
+
+# Check mail addresses
+include_mail = false
+
+# Check fragments/anchors within documents
+include_fragments = true
+
+# Skip TLS verification (not recommended for production)
+insecure = false
+
+# Require HTTPS
+require_https = false
+
+# ============================================================================
+# Glob Patterns for Files to Check
+# ============================================================================
+
+# Files to include (supports glob patterns)
+# This is typically set via command line but can be defaulted here
+# glob = ["**/*.md"]

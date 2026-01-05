@@ -1,0 +1,224 @@
+# InferaDB Documentation - Gitleaks Configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "InferaDB Documentation Secret Detection"
+
+# ============================================================================
+# Global Settings
+# ============================================================================
+
+[extend]
+# Use the default gitleaks rules as a base
+useDefault = true
+
+# ============================================================================
+# Allowlists - Patterns that should NOT trigger alerts
+# ============================================================================
+
+[allowlist]
+description = "InferaDB Documentation Allowlist"
+
+# Paths to completely ignore
+paths = [
+    '''node_modules/''',
+    '''\.git/''',
+    '''vendor/''',
+    '''\.DS_Store''',
+    '''package-lock\.json''',
+    '''yarn\.lock''',
+]
+
+# Regex patterns for false positive strings
+regexes = [
+    # Example placeholder values in documentation
+    '''YOUR[-_]?API[-_]?KEY[-_]?HERE''',
+    '''YOUR[-_]?SECRET[-_]?HERE''',
+    '''YOUR[-_]?TOKEN[-_]?HERE''',
+    '''REPLACE[-_]?WITH[-_]?YOUR''',
+    '''<YOUR[-_]''',
+    '''your[-_]api[-_]key''',
+    '''your[-_]secret''',
+    '''example[-_]key''',
+    '''example[-_]secret''',
+    '''test[-_]key''',
+    '''test[-_]secret''',
+    '''dummy[-_]key''',
+    '''dummy[-_]secret''',
+    '''placeholder''',
+
+    # Documentation example values
+    '''tskey-auth-YOUR-KEY-HERE''',
+    '''sk[-_]test[-_]''',
+    '''pk[-_]test[-_]''',
+
+    # Docker/Kubernetes example values
+    '''docker:docker@''',
+    '''admin:admin@''',
+    '''root:root@''',
+
+    # UUID placeholders
+    '''00000000-0000-0000-0000-000000000000''',
+    '''xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx''',
+
+    # Example IP addresses (RFC 5737 documentation ranges)
+    '''192\.0\.2\.\d{1,3}''',
+    '''198\.51\.100\.\d{1,3}''',
+    '''203\.0\.113\.\d{1,3}''',
+
+    # Example domains
+    '''example\.(com|org|net)''',
+
+    # Kubernetes service DNS
+    '''\.svc\.cluster\.local''',
+
+    # Helm template values
+    '''\{\{.*\}\}''',
+
+    # Environment variable references
+    '''\$\{[A-Z_]+\}''',
+    '''\$[A-Z_]+''',
+]
+
+# Specific commits to ignore (for legacy false positives)
+commits = []
+
+# ============================================================================
+# Custom Rules for Documentation-Specific Patterns
+# ============================================================================
+
+[[rules]]
+id = "hardcoded-password-in-url"
+description = "Hardcoded password in URL"
+regex = '''://[^:]+:[^@]{8,}@[a-zA-Z0-9.-]+'''
+keywords = ["://"]
+tags = ["password", "url", "security"]
+
+[[rules]]
+id = "hardcoded-connection-string"
+description = "Hardcoded database connection string with password"
+regex = '''(postgres|mysql|mongodb|redis|amqp)://[^:]+:[^@]+@[^/]+'''
+keywords = ["://"]
+tags = ["password", "database", "security"]
+
+[[rules]]
+id = "hardcoded-bearer-token"
+description = "Hardcoded Bearer token in examples"
+regex = '''Bearer\s+[a-zA-Z0-9_-]{20,}'''
+keywords = ["Bearer"]
+tags = ["token", "auth", "security"]
+[rules.allowlist]
+regexes = [
+    '''Bearer\s+\$\{.*\}''',
+    '''Bearer\s+YOUR[-_]TOKEN''',
+    '''Bearer\s+<token>''',
+    '''Bearer\s+eyJ\.\.\.''',
+]
+
+[[rules]]
+id = "tailscale-auth-key"
+description = "Tailscale authentication key"
+regex = '''tskey-auth-[a-zA-Z0-9]{24,}'''
+keywords = ["tskey-auth"]
+tags = ["tailscale", "auth", "security"]
+[rules.allowlist]
+regexes = [
+    '''tskey-auth-YOUR-KEY-HERE''',
+    '''tskey-auth-[xX]+''',
+]
+
+[[rules]]
+id = "github-personal-access-token"
+description = "GitHub personal access token"
+regex = '''ghp_[a-zA-Z0-9]{36}'''
+keywords = ["ghp_"]
+tags = ["github", "token", "security"]
+
+[[rules]]
+id = "github-fine-grained-token"
+description = "GitHub fine-grained personal access token"
+regex = '''github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}'''
+keywords = ["github_pat_"]
+tags = ["github", "token", "security"]
+
+[[rules]]
+id = "slack-webhook-url"
+description = "Slack webhook URL"
+regex = '''https://hooks\.slack\.com/services/T[A-Z0-9]+/B[A-Z0-9]+/[a-zA-Z0-9]+'''
+keywords = ["hooks.slack.com"]
+tags = ["slack", "webhook", "security"]
+
+[[rules]]
+id = "pii-email-address"
+description = "Possible PII - Email address (not @example.com)"
+regex = '''[a-zA-Z0-9._%+-]+@(?!example\.)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'''
+keywords = ["@"]
+tags = ["pii", "email", "privacy"]
+# This is a warning-level rule - won't block but will report
+[rules.allowlist]
+regexes = [
+    '''@example\.(com|org|net)''',
+    '''@test\.(com|org|net)''',
+    '''@localhost''',
+    '''noreply@''',
+    '''no-reply@''',
+    '''support@inferadb\.com''',
+    '''team@inferadb\.com''',
+    '''security@inferadb\.com''',
+    '''hello@inferadb\.com''',
+]
+
+[[rules]]
+id = "pii-phone-number"
+description = "Possible PII - Phone number"
+regex = '''\+?1?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}'''
+keywords = []
+tags = ["pii", "phone", "privacy"]
+[rules.allowlist]
+regexes = [
+    '''555[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}''',  # Fake phone numbers (555-xxxx)
+    '''123[-.\s]?456[-.\s]?7890''',  # Common placeholder
+    '''000[-.\s]?000[-.\s]?0000''',
+]
+
+# ============================================================================
+# File-Type Specific Rules
+# ============================================================================
+
+[[rules]]
+id = "private-key-header"
+description = "Private key header detected"
+regex = '''-----BEGIN (RSA|DSA|EC|OPENSSH|PGP) PRIVATE KEY-----'''
+keywords = ["-----BEGIN", "PRIVATE KEY"]
+tags = ["key", "private", "security"]
+
+[[rules]]
+id = "base64-high-entropy"
+description = "High entropy base64 string (possible encoded secret)"
+regex = '''[A-Za-z0-9+/]{64,}={0,2}'''
+keywords = []
+tags = ["entropy", "base64", "security"]
+entropy = 4.5
+[rules.allowlist]
+paths = [
+    '''\.png$''',
+    '''\.jpg$''',
+    '''\.jpeg$''',
+    '''\.gif$''',
+    '''\.ico$''',
+    '''\.svg$''',
+]
+regexes = [
+    # Common non-secret base64 patterns
+    '''data:image/''',
+]
+
+# ============================================================================
+# Entropy Settings
+# ============================================================================
+
+# Default entropy threshold for generic secret detection
+# Higher values = fewer false positives but might miss some secrets
+# Lower values = more sensitive but more false positives
+[entropy]
+min = 3.5
+max = 8.0
