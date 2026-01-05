@@ -385,12 +385,6 @@ The authorization landscape includes several mature solutions. InferaDB differen
 - **Auditability and compliance** are primary concerns (SOC 2, HIPAA, GDPR).
 - **Inference-based reasoning** better fits your authorization model than pure graph traversal.
 
-### When Alternatives May Fit Better
-
-- **SpiceDB/OpenFGA:** Mature ecosystems with extensive documentation and community; good for pure ReBAC use cases.
-- **Oso:** Embedded authorization for monolithic applications; expressive Polar language.
-- **Cerbos:** Stateless, sidecar-friendly deployment; simple YAML-based policies.
-
 ## Conclusion
 
 InferaDB represents a next-generation approach to authorization — where policies are logic, decisions are proofs, and relationships form the foundation of access reasoning.
