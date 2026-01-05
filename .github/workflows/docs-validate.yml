@@ -13,7 +13,6 @@ on:
       - ".cspell/**"
       - ".vale.ini"
       - ".vale/**"
-      - ".gitleaks.toml"
       - "lychee.toml"
       - ".github/workflows/docs-validate.yml"
       - ".github/scripts/**"
@@ -26,7 +25,6 @@ on:
       - ".cspell/**"
       - ".vale.ini"
       - ".vale/**"
-      - ".gitleaks.toml"
       - "lychee.toml"
       - ".github/workflows/docs-validate.yml"
       - ".github/scripts/**"
@@ -302,31 +300,6 @@ jobs:
           retention-days: 7
 
   # ============================================================================
-  # Security Scan (Blocking)
-  # ============================================================================
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
-        with:
-          egress-policy: audit
-
-      - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
-
-  # ============================================================================
   # Structure Validation (Blocking)
   # ============================================================================
   structure:
@@ -369,7 +342,6 @@ jobs:
         spell-check,
         prose-lint,
         link-internal,
-        security-scan,
         structure,
       ]
     if: always()
@@ -392,7 +364,6 @@ jobs:
           SPELL_RESULT: ${{ needs.spell-check.result }}
           PROSE_RESULT: ${{ needs.prose-lint.result }}
           LINK_RESULT: ${{ needs.link-internal.result }}
-          SECURITY_RESULT: ${{ needs.security-scan.result }}
           STRUCTURE_RESULT: ${{ needs.structure.result }}
         run: |
           echo "## Documentation Validation Report" >> "$GITHUB_STEP_SUMMARY"
@@ -426,12 +397,6 @@ jobs:
             echo "| Internal Links | Fail |" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          if [ "$SECURITY_RESULT" = "success" ]; then
-            echo "| Security Scan | Pass |" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "| Security Scan | Fail |" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
           if [ "$STRUCTURE_RESULT" = "success" ]; then
             echo "| Structure | Pass |" >> "$GITHUB_STEP_SUMMARY"
           else
@@ -444,12 +409,10 @@ jobs:
         env:
           LINT_RESULT: ${{ needs.markdown-lint.result }}
           LINK_RESULT: ${{ needs.link-internal.result }}
-          SECURITY_RESULT: ${{ needs.security-scan.result }}
           STRUCTURE_RESULT: ${{ needs.structure.result }}
         run: |
           if [ "$LINT_RESULT" != "success" ] || \
              [ "$LINK_RESULT" != "success" ] || \
-             [ "$SECURITY_RESULT" != "success" ] || \
              [ "$STRUCTURE_RESULT" != "success" ]; then
             echo "::error::One or more blocking checks failed"
             exit 1

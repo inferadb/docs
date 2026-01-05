@@ -1,18 +1,1 @@
-# Default: All documentation requires engineering review
 * @inferadb/engineering
-
-# GitHub workflows and CI configuration require senior review
-.github/ @inferadb/engineering
-
-# Quality control configurations
-.markdownlint.yaml @inferadb/engineering
-.vale.ini @inferadb/engineering
-.gitleaks.toml @inferadb/engineering
-lychee.toml @inferadb/engineering
-.cspell/ @inferadb/engineering
-
-# Architecture documents require senior review
-architecture/ @inferadb/engineering
-
-# RFCs require senior review
-rfcs/ @inferadb/engineering
