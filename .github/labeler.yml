@@ -36,14 +36,8 @@ area/whitepapers:
           - "**/whitepapers/**/*"
           - "**/whitepaper/**/*"
 
-# Deployment documentation
-area/deployment:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "**/deployment/**/*"
-          - "**/deploy/**/*"
-          - "**/kubernetes/**/*"
-          - "**/k8s/**/*"
+# Deployment documentation (now in deploy repo)
+# area/deployment label no longer used - deployment docs moved to inferadb/deploy
 
 # API documentation
 area/api:

@@ -254,10 +254,12 @@ Additional settings.
 
 ```
 docs/
-├── deployment/
-│   ├── local-k8s-testing.md
-│   ├── service-discovery.md
-│   └── tailscale-multi-region.md
+├── architecture/
+│   └── system-overview.md
+├── guides/
+│   └── getting-started.md
+├── rfcs/
+│   └── 0001-feature-proposal.md
 ├── templates/
 │   ├── rfc-template.md
 │   └── style-guide.md

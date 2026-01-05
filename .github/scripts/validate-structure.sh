@@ -88,7 +88,7 @@ validate_directory_structure() {
     log_info "Validating directory structure..."
 
     # Required directories
-    local required_dirs=("deployment" "templates")
+    local required_dirs=("templates")
 
     for dir in "${required_dirs[@]}"; do
         if [[ ! -d "$dir" ]]; then
@@ -119,7 +119,7 @@ validate_directory_structure() {
     done < <(find . -type d -print0 2>/dev/null)
 
     # Check for README or index in major directories
-    local major_dirs=("deployment" "guides" "whitepapers" "rfcs" "architecture")
+    local major_dirs=("guides" "whitepapers" "rfcs" "architecture")
 
     for dir in "${major_dirs[@]}"; do
         if [[ -d "$dir" ]]; then

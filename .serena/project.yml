@@ -82,14 +82,16 @@ initial_prompt: |
   InferaDB Documentation - Technical specifications, deployment guides, and design proposals.
 
   Structure:
-  - deployment/ - Kubernetes and infrastructure guides
   - whitepapers/ - Technical publications (InferaDB Technical Overview)
   - templates/ - RFC template and style guide
   - rfcs/ - Feature proposals
+  - architecture/ - Architecture documentation
+  - guides/ - How-to guides
 
   Component documentation lives in respective repositories:
   - engine/docs/ - Engine docs (API, IPL, architecture)
   - control/docs/ - Control docs (authentication, entities)
+  - deploy/docs/ - Deployment guides (moved from this repo)
 
   When adding new content:
   1. Copy templates/rfc-template.md to rfcs/XXXX-title.md

@@ -9,12 +9,7 @@ Most documentation lives within component repositories:
 - **[engine/](https://github.com/inferadb/engine/tree/main/docs)** — Engine docs (API, IPL, architecture)
 - **[control/](https://github.com/inferadb/control/tree/main/docs)** — Control docs (authentication, entities)
 
-## Deployment
-
-- [Local Kubernetes Testing](deployment/local-k8s-testing.md)
-- [Service Discovery](deployment/service-discovery.md)
-- [Migration to Discovery](deployment/migration-to-discovery.md)
-- [Tailscale Multi-Region](deployment/tailscale-multi-region.md)
+Deployment documentation lives in the [deploy repository](https://github.com/inferadb/deploy/tree/main/docs).
 
 ## Whitepapers
 
