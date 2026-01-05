@@ -6,7 +6,23 @@ Modern applications demand fine-grained, contextual authorization systems capabl
 
 **InferaDB** is an inference-driven authorization database that unifies relationship-based access control (ReBAC), logical policy reasoning, and standardized interoperability through the **AuthZEN** specification. It draws inspiration from **Google Zanzibar** [1], incorporates the execution and co-location principles of **SpacetimeDB** [2], and introduces a modular, reasoning-first approach to access control through deterministic policy inference and sandboxed logic execution.
 
-Built in **Rust** for low-latency and strong consistency, and orchestrated in **TypeScript** for developer accessibility, InferaDB delivers authorization that is **explainable, auditable, and composable** — by design.
+Built entirely in **Rust** for low-latency and strong consistency, with a **TypeScript** dashboard for developer accessibility, InferaDB delivers authorization that is **explainable, auditable, and composable** — by design.
+
+## Executive Summary
+
+InferaDB addresses three critical challenges in modern authorization:
+
+| Challenge                      | Solution                                                                                                                                                                                                                                             |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Complexity at Scale**        | Traditional RBAC/ABAC systems fragment under distributed, multi-tenant architectures. InferaDB models authorization as a graph of relationships with logical inference, enabling natural expression of hierarchies, groups, and derived permissions. |
+| **Compliance by Design**       | Every authorization decision is revision-tracked, cryptographically signed, and replayable. Audit logs are append-only and hash-chained, enabling SOC 2, HIPAA, and GDPR compliance requirements by default.                                         |
+| **Extensibility Without Risk** | Domain-specific logic (IP ranges, subscription tiers, workflow states) runs in sandboxed WASM modules—enabling custom rules without compromising determinism, security, or auditability.                                                             |
+
+**Key Differentiators:**
+
+- **AuthZEN-native:** First-class support for the OpenID Foundation's authorization API specification, enabling vendor-neutral interoperability.
+- **Sub-10ms latency:** Co-located computation with data in isolated PDP cells achieves consistently low latency under multi-tenant workloads.
+- **Policy-as-code:** The Infera Policy Language (IPL) enables version-controlled, testable, and reviewable authorization logic.
 
 ## Motivation
 
@@ -137,234 +153,154 @@ permission view = viewer or (is_public == true and time_now < resource.expiry)
 
 ## WASM Policy Modules
 
-### Overview
+While declarative policies cover most authorization logic, real-world access control often depends on **contextual or domain-specific logic** — such as IP ranges, subscription tiers, workflow states, or compliance rules.
 
-While declarative policies (defined in the Infera Policy Language) cover most authorization logic, real-world access control often depends on **contextual or domain-specific logic** — such as time of day, subscription tiers, workflow states, or third-party compliance rules.
+InferaDB supports **WASM Policy Modules**: sandboxed, tenant-scoped logic extensions that execute in-process within each PDP cell. Each module is:
 
-To support these dynamic conditions without sacrificing safety or consistency, InferaDB introduces **WASM Policy Modules**: lightweight, sandboxed, tenant-scoped logic extensions that execute **in-process** within each **Policy Decision Point (PDP)** cell.
+- **Portable and deterministic:** Compiled to WebAssembly from Rust, TypeScript, or any WASM-compatible language.
+- **Signed and versioned:** Immutable once published, with cryptographic signatures for auditability.
+- **Resource-constrained:** CPU and memory limits enforced by the runtime sandbox.
+- **Invoked from IPL:** Policies call modules via the `module` namespace.
 
-Each module is:
+### Example: Contextual Access Control
 
-- Compiled to **WebAssembly (WASM)** for portability and determinism.
-- **Signed and versioned** per tenant to ensure immutability and auditability.
-- Executed under strict CPU and memory constraints (e.g., 5ms and 32MB).
-- Invoked by IPL (Infera Policy Language) permissions through the `module` namespace.
-
-### Real-World Example
-
-Consider a platform like **“AtlasDocs”**, an enterprise SaaS for secure document collaboration.
-
-Access rules must adapt based on:
-
-- **User role** within an organization (e.g., _editor_, _viewer_, _admin_).
-- **Document classification level** (_confidential_, _internal_, _public_).
-- **Contextual factors**, such as whether the user is accessing from a corporate network, and whether the document is currently under legal hold.
-
-Declarative rules can model static relationships like `editor` or `viewer`, but the contextual checks — such as verifying IP range or legal hold state — are better handled by a WASM module.
-
-### Declarative Policy
+An enterprise document platform might allow viewing based on relationships, but require additional checks for confidential documents accessed from external networks:
 
 ```praxis
 entity document {
   relation viewer: user | group#member
-  relation editor: user | group#member
-  relation owner: user
-
   attribute classification: string
-  attribute legal_hold: bool
 
-  permission view =
-      viewer
-      or editor
-      or (module.check_context(context, resource, subject) == true)
-
-  permission edit =
-      editor
-      and module.can_edit(context, resource, subject)
+  permission view = viewer or module.check_network_access(context, resource)
 }
 ```
 
-The policy defines `view` and `edit` permissions that defer advanced context checks to the module.
+The `check_network_access` module (written in Rust or TypeScript) can inspect the request context, verify IP ranges, check compliance flags, and return a boolean—all within a deterministic, auditable sandbox.
 
-### WASM Module Implementation
+### Security Model
 
-Developers can write modules in **Rust** or **TypeScript** and compile to WASM.
-Below is an example implemented in **Rust**, leveraging the safety guarantees of the language while remaining fully deterministic.
+| Property         | Guarantee                                                            |
+| ---------------- | -------------------------------------------------------------------- |
+| **Isolation**    | No I/O, network, or filesystem access from WASM modules.             |
+| **Determinism**  | Static analysis rejects modules with non-deterministic imports.      |
+| **Auditability** | Every invocation is logged with module version, inputs, and outputs. |
+| **Versioning**   | Policies reference explicit module versions—no implicit upgrades.    |
 
-```rust
-// src/lib.rs
-
-use infera_sdk::{Context, Resource, Subject};
-
-/// Checks if a user can view a document based on contextual attributes.
-/// - Only allow access if the user is within a trusted IP range or the document
-///   is not marked confidential.
-/// - Deny access entirely if the document is under legal hold.
-#[no_mangle]
-pub extern "C" fn check_context(
-    ctx: Context,
-    resource: Resource,
-    subject: Subject,
-) -> bool {
-    let user_ip = ctx.get("ip_address").unwrap_or_default();
-    let trusted_ips = vec!["10.0.0.0/8", "192.168.0.0/16"];
-
-    // If document is under legal hold, deny all access.
-    if resource.get_bool("legal_hold").unwrap_or(false) {
-        return false;
-    }
-
-    // Allow internal users or non-confidential documents.
-    let classification = resource.get_str("classification").unwrap_or("public");
-    if classification != "confidential" || trusted_ips.iter().any(|r| ip_in_range(&user_ip, r)) {
-        return true;
-    }
-
-    false
-}
-
-fn ip_in_range(ip: &str, cidr: &str) -> bool {
-    // Simplified IP check for example purposes.
-    ip.starts_with("10.") || ip.starts_with("192.168.")
-}
-```
-
-When compiled to WASM, this module will:
-
-- Accept contextual data (e.g., IP address, session metadata).
-- Read document attributes like `classification` and `legal_hold`.
-- Evaluate a custom logic path that would be cumbersome or unsafe to express in a pure DSL.
-
-### Module Registration
-
-Developers publish the module using the **Infera CLI**:
-
-```bash
-infera module publish ./target/wasm32-unknown-unknown/release/atlasdocs_context.wasm \
-  --tenant atlasdocs \
-  --name context-check \
-  --version v1.3.0
-```
-
-Control Plane verifies:
-
-1. The module’s **signature** (developer or tenant key).
-2. Its **determinism guarantee** (static analysis of WASM imports).
-3. Its **metadata manifest** (declared exports, version, and permissions).
-
-Once validated, the PDP cells for that tenant fetch and cache the compiled bytecode.
-
-### Runtime Execution
-
-1. A client SDK issues a policy check via the AuthZEN API:
-
-   ```json
-   {
-     "subject": "user:evan",
-     "resource": "document:123",
-     "action": "view",
-     "context": { "ip_address": "10.15.2.45" }
-   }
-   ```
-
-2. The PDP Cell retrieves the relevant tuples and policy definitions.
-
-3. The policy evaluator executes the declarative logic (`viewer or editor or module.check_context`).
-
-4. The WASM runtime safely invokes `check_context()`.
-
-5. A decision is returned, including trace metadata and module version.
-
-Response example:
-
-```json
-{
-  "allowed": true,
-  "revision": "r85fj2",
-  "policy_version": "v1.3.0",
-  "module": "context-check",
-  "explanation": {
-    "path": ["permission:view", "module.check_context → true"]
-  }
-}
-```
-
-### Benefits
-
-| Benefit           | Description                                                                                                                       |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Safety**        | WASM ensures deterministic, isolated execution. No I/O or network calls.                                                          |
-| **Flexibility**   | Developers can encode domain-specific logic in any language that compiles to WASM.                                                |
-| **Auditability**  | Every module invocation is logged with version, inputs, and outputs.                                                              |
-| **Performance**   | Module execution is in-process, adding <2ms overhead per check.                                                                   |
-| **Extensibility** | Allows domain engineers (e.g., compliance or risk teams) to define context-sensitive rules without modifying the core policy DSL. |
-
-### Versioning and Rollback
-
-Each module version is immutable once published.
-To upgrade a rule safely, developers can branch their policy, publish a new module version, and perform a **simulation** before merge:
-
-```bash
-infera module publish ./atlasdocs_context_v2.wasm --version v1.4.0
-infera simulate --policy branch:feature/legal-hold
-infera merge feature/legal-hold
-```
-
-This workflow provides **safe, reversible policy evolution**.
-
-### Security and Governance
-
-- **Module Signing:** Each WASM file must include a detached signature generated with the tenant’s private key.
-- **Static Analysis:** Control Plane validates all WASM imports to ensure pure determinism (no random, time, or I/O dependencies).
-- **Sandbox Constraints:** CPU, memory, and stack usage limits enforced by the PDP runtime.
-- **Version Pinnings:** Policies always reference an explicit module version — no implicit upgrades.
-
-### Summary
-
-WASM Policy Modules make InferaDB not just a relationship graph, but a **programmable reasoning system**.
-They enable organizations to express nuanced, real-world logic — such as conditional access, risk-based checks, or compliance enforcement — while maintaining **strong consistency, safety, and auditability**.
+WASM modules transform InferaDB from a relationship graph into a **programmable reasoning system**, enabling domain-specific logic while maintaining strong consistency and security guarantees.
 
 ## Consistency Model
 
+Authorization systems face a fundamental tension: **strong consistency** ensures correct access decisions, but **global coordination** introduces latency. InferaDB resolves this through a carefully designed consistency model that prioritizes correctness while enabling low-latency reads.
+
+### The New Enemy Problem
+
+Consider a scenario where Alice removes Bob's access to a document at 10:00:00. If Bob's read request at 10:00:01 reaches a replica that hasn't yet received the revocation, Bob incorrectly gains access. This is the **"new enemy problem"** described in the Zanzibar paper—and it's why eventual consistency is unacceptable for authorization.
+
 ### Revision Tokens
 
-Every authorization decision references a **revision token**, representing a consistent snapshot of the relationship graph at a given point in time.
+Every authorization decision references a **revision token**: a monotonically increasing identifier representing a consistent snapshot of the relationship graph.
 
-### Replication
+Clients can:
 
-- **Writes:** Linearizable and region-local.
-- **Reads:** Snapshot-isolated via revision tokens.
-- **Replication:** Causally ordered via version vectors and event streams.
-- **Conflict Resolution:** Single-writer-per-key model ensures determinism.
+- **Request at-least revision:** "Check access using data at least as fresh as revision `R`."
+- **Receive revision in response:** "This decision was made at revision `R`."
+- **Pass revision between services:** Ensures causal consistency across distributed calls.
+
+This design enables **read-your-writes consistency** without global coordination on every request.
+
+### Consistency Guarantees
+
+| Operation        | Guarantee                              | Trade-off                                          |
+| ---------------- | -------------------------------------- | -------------------------------------------------- |
+| **Writes**       | Linearizable within region             | Single-writer-per-key prevents conflicts           |
+| **Reads**        | Snapshot isolation via revision tokens | Slight staleness acceptable with token propagation |
+| **Cross-region** | Causal ordering via event streams      | Bounded replication lag (typically <100ms)         |
+
+### Why This Matters
+
+- **Compliance:** Auditors can replay any historical decision by specifying its revision token.
+- **Debugging:** "Why did this access succeed at 10:00:00?" becomes answerable.
+- **Correctness:** No false positives from stale data when revision tokens are propagated correctly.
 
 ## Scalability and Performance
 
-Each PDP cell combines local tuple storage with co-located inference computation, achieving sub-10ms median latency even under multi-tenant workloads.
+InferaDB achieves high throughput and low latency through architectural decisions that co-locate computation with data and minimize cross-region coordination.
+
+### Performance Characteristics
+
+| Metric             | Target                | Achieved Through                                  |
+| ------------------ | --------------------- | ------------------------------------------------- |
+| **Median latency** | <10ms                 | Co-located PDP cells with local tuple storage     |
+| **P99 latency**    | <50ms                 | Multi-tier caching, connection pooling            |
+| **Throughput**     | Horizontally scalable | Sharding by tenant/namespace, stateless API layer |
+
+### Architecture for Scale
+
+**Co-located Computation:** Each PDP cell maintains its own tuple store replica, eliminating network round-trips for authorization checks. The evaluator, cache, and WASM sandbox run in the same process.
+
+**Sharding Strategy:** Tenants are assigned to PDP cells based on consistent hashing. Large tenants can be further sharded by namespace or resource type.
+
+**Caching Hierarchy:**
+
+1. **L1 (in-process):** Hot tuples and policy definitions cached per-cell.
+2. **L2 (distributed):** Cross-cell cache for frequently accessed data.
+3. **L3 (storage):** FoundationDB provides durable, strongly consistent storage.
 
 ### Scaling Mechanisms
 
-- **Sharding by tenant or namespace.**
-- **Horizontal PDP scaling with cell discovery.**
-- **Multi-tier caching (in-memory + distributed).**
-- **Batch and streaming tuple ingestion.**
-
-Target scalability: **1M+ checks per second across regions.**
+- **Horizontal PDP scaling:** Add cells as load increases; service discovery routes requests automatically.
+- **Batch ingestion:** Bulk tuple operations for initial data loads and migrations.
+- **Streaming updates:** Real-time tuple changes propagate via event streams.
+- **Read replicas:** Deploy read-only cells closer to users for latency-sensitive workloads.
 
 ## Security Model
 
-| Concern              | Mechanism                                               |
-| -------------------- | ------------------------------------------------------- |
-| **Isolation**        | Per-tenant namespaces and PDP sandboxes.                |
-| **Module Safety**    | WASM runtime with signed, deterministic bytecode.       |
-| **Data Protection**  | End-to-end mTLS and per-tenant encryption keys.         |
-| **Auditability**     | Append-only, hash-chained decision logs.                |
-| **Tamper Detection** | Policy and schema signatures verified before execution. |
+InferaDB is designed with a **zero-trust architecture** where every component assumes compromise of adjacent systems. Security is not an add-on—it's foundational to the design.
+
+### Threat Model
+
+| Threat                       | Mitigation                                                            |
+| ---------------------------- | --------------------------------------------------------------------- |
+| **Unauthorized data access** | Per-tenant encryption keys; namespace isolation at storage layer      |
+| **Policy tampering**         | Cryptographic signatures on all policy and schema changes             |
+| **Malicious WASM modules**   | Static analysis rejects non-deterministic imports; runtime sandboxing |
+| **Audit log manipulation**   | Append-only, hash-chained logs; external attestation support          |
+| **Network interception**     | End-to-end mTLS between all components                                |
+| **Privilege escalation**     | Least-privilege service accounts; tenant-scoped API tokens            |
+
+### Defense in Depth
+
+**Tenant Isolation:** Each tenant operates in a logically isolated namespace. PDP cells enforce strict boundaries—a bug or misconfiguration in one tenant's policy cannot affect another.
+
+**Immutable Audit Trail:** Every authorization decision is logged with:
+
+- Request parameters (subject, resource, action, context)
+- Decision result and explanation path
+- Policy version and revision token
+- Timestamp and cryptographic signature
+
+Logs are append-only and hash-chained, enabling tamper detection. Organizations can export logs to external SIEM systems for compliance.
+
+### Compliance Mapping
+
+| Framework   | Relevant Controls                                                          |
+| ----------- | -------------------------------------------------------------------------- |
+| **SOC 2**   | CC6.1 (logical access), CC7.2 (system monitoring)                          |
+| **HIPAA**   | Access controls (§164.312(a)), Audit controls (§164.312(b))                |
+| **GDPR**    | Article 25 (data protection by design), Article 30 (records of processing) |
+| **PCI DSS** | Requirement 7 (restrict access), Requirement 10 (track access)             |
+
+### Supply Chain Security
+
+- **Signed releases:** All InferaDB binaries are signed and verifiable.
+- **SBOM:** Software Bill of Materials published for each release.
+- **Dependency scanning:** Automated vulnerability detection in CI/CD.
 
 ## Developer Experience
 
 ### CLI
 
-`infera` — a unified command-line tool for:
+`inferadb` — a unified command-line tool for:
 
 - Initializing projects and schemas.
 - Branching and merging policies.
@@ -374,14 +310,14 @@ Target scalability: **1M+ checks per second across regions.**
 Example:
 
 ```bash
-infera policy branch feature/new-rule
-infera simulate --resource document:1 --subject user:evan
-infera merge feature/new-rule
+inferadb policy branch feature/new-rule
+inferadb simulate --resource document:1 --subject user:evan
+inferadb merge feature/new-rule
 ```
 
 ### SDKs
 
-Official SDKs for **Go**, **Python**, **TypeScript**, **Rust**, **PHP**, and **Ruby** provide idiomatic bindings for:
+The official **Rust SDK** provides idiomatic bindings for:
 
 - Tuple operations.
 - Policy checks.
@@ -407,7 +343,7 @@ The **Infera Dashboard** allows developers to visualize schemas, simulate access
 ### Local Development
 
 - **Docker Compose** or **Tilt** for rapid iteration.
-- Local FoundationDB or CockroachDB for tuple storage.
+- Local FoundationDB for tuple storage.
 - Hot reload of dashboard and control containers.
 
 ### Production
@@ -429,6 +365,32 @@ inferadb/
 └── config/      # Shared configuration
 ```
 
+## Comparison with Alternatives
+
+The authorization landscape includes several mature solutions. InferaDB differentiates through its combination of inference-based reasoning, standards compliance, and extensibility.
+
+| Capability          | InferaDB                 | SpiceDB                          | OpenFGA           | Oso                  | Cerbos          |
+| ------------------- | ------------------------ | -------------------------------- | ----------------- | -------------------- | --------------- |
+| **Model**           | ReBAC + ABAC + Inference | ReBAC (Zanzibar)                 | ReBAC (Zanzibar)  | Polar (logic)        | YAML policies   |
+| **AuthZEN Support** | Native                   | Via adapter                      | Via adapter       | No                   | No              |
+| **Custom Logic**    | WASM modules             | Limited                          | Limited           | Polar rules          | CEL expressions |
+| **Consistency**     | Revision tokens          | ZedTokens                        | Tuples versioning | Application-level    | Stateless       |
+| **Storage**         | FoundationDB             | CockroachDB, Spanner, PostgreSQL | PostgreSQL, MySQL | In-memory / External | Stateless       |
+| **Multi-tenancy**   | Native isolation         | Schema-based                     | Store-based       | Application-level    | Policy bundles  |
+
+### When to Choose InferaDB
+
+- **AuthZEN interoperability** is required for vendor-neutral integration.
+- **Complex domain logic** (compliance rules, contextual checks) needs safe extensibility via WASM.
+- **Auditability and compliance** are primary concerns (SOC 2, HIPAA, GDPR).
+- **Inference-based reasoning** better fits your authorization model than pure graph traversal.
+
+### When Alternatives May Fit Better
+
+- **SpiceDB/OpenFGA:** Mature ecosystems with extensive documentation and community; good for pure ReBAC use cases.
+- **Oso:** Embedded authorization for monolithic applications; expressive Polar language.
+- **Cerbos:** Stateless, sidecar-friendly deployment; simple YAML-based policies.
+
 ## Conclusion
 
 InferaDB represents a next-generation approach to authorization — where policies are logic, decisions are proofs, and relationships form the foundation of access reasoning.
@@ -438,12 +400,26 @@ By combining the consistency of Zanzibar, the interoperability of AuthZEN, and t
 
 ## References
 
-[1] Google Zanzibar: Google’s Consistent, Global Authorization System — _USENIX ATC 2019._
-[2] SpacetimeDB: A Stateful Database with Co-located Compute.
-[3] AuthZEN: OpenID Foundation Authorization API Specification (v1.0).
-[4] AuthZed / SpiceDB: Open-source Zanzibar implementation.
-[5] OpenFGA: Fine-grained authorization by Meta.
-[6] Oso: Policy engine for application-level authorization.
+1. Pang, R. et al. "Zanzibar: Google's Consistent, Global Authorization System." _USENIX ATC 2019._ [https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/](https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/)
+2. SpacetimeDB. "A Database with Co-located Compute." [https://spacetimedb.com](https://spacetimedb.com)
+3. OpenID Foundation. "AuthZEN Authorization API Specification v1.0." [https://openid.net/specs/authorization-api-1_0.html](https://openid.net/specs/authorization-api-1_0.html)
+4. AuthZed. "SpiceDB: Open-Source Zanzibar Implementation." [https://authzed.com/spicedb](https://authzed.com/spicedb)
+5. OpenFGA. "Fine-Grained Authorization." [https://openfga.dev](https://openfga.dev)
+6. Oso. "Authorization as a Service." [https://www.osohq.com](https://www.osohq.com)
 
-Would you like me to include a **visual architecture diagram (in Markdown-friendly text + mermaid)** to accompany this whitepaper?
-It would illustrate Control Plane, PDP Cells, and Replication model directly inside the document.
+## Glossary
+
+| Term               | Definition                                                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **ABAC**           | Attribute-Based Access Control. Authorization based on attributes of subjects, resources, and environment.                           |
+| **AuthZEN**        | OpenID Foundation specification for a standardized authorization API, enabling vendor-neutral interoperability.                      |
+| **Control Plane**  | The management layer of InferaDB that handles tenants, schemas, policies, and replication topology.                                  |
+| **Data Plane**     | The execution layer where authorization checks are performed in isolated PDP cells.                                                  |
+| **IPL**            | Infera Policy Language. InferaDB's declarative language for defining entities, relationships, and permissions.                       |
+| **PDP**            | Policy Decision Point. An isolated compute unit that evaluates authorization requests against policies and data.                     |
+| **RBAC**           | Role-Based Access Control. Authorization based on roles assigned to subjects.                                                        |
+| **ReBAC**          | Relationship-Based Access Control. Authorization derived from relationships between entities (e.g., "user is member of group").      |
+| **Revision Token** | A monotonically increasing identifier representing a consistent snapshot of the relationship graph.                                  |
+| **Tuple**          | A relationship record in the form `(subject, relation, resource)`, e.g., `(user:alice, viewer, document:123)`.                       |
+| **WASM**           | WebAssembly. A portable binary format used for sandboxed execution of custom policy modules.                                         |
+| **Zanzibar**       | Google's global authorization system, described in the 2019 USENIX ATC paper. InferaDB draws inspiration from its consistency model. |
