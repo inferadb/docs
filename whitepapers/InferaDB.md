@@ -457,17 +457,22 @@ access control.
 
 ## References
 
-1. Pang, R. et al. "Zanzibar: Google's Consistent, Global Authorization System."
+1. Pang, R. et al.
+   [Zanzibar: Google's Consistent, Global Authorization System][zanzibar].
    *USENIX ATC 2019.*
-   [Link](https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/)
-2. SpacetimeDB. "A Database with Co-located Compute."
-   [Link](https://spacetimedb.com)
-3. OpenID Foundation. "AuthZEN Authorization API Specification v1.0."
-   [Link](https://openid.net/specs/authorization-api-1_0.html)
-4. AuthZed. "SpiceDB: Open-Source Zanzibar Implementation."
-   [Link](https://authzed.com/spicedb)
-5. OpenFGA. "Fine-Grained Authorization." [Link](https://openfga.dev)
-6. Oso. "Authorization as a Service." [Link](https://www.osohq.com)
+2. [SpacetimeDB][spacetimedb]. "A Database with Co-located Compute."
+3. OpenID Foundation.
+   [AuthZEN Authorization API Specification v1.0][authzen].
+4. AuthZed. [SpiceDB: Open-Source Zanzibar Implementation][spicedb].
+5. [OpenFGA][openfga]. "Fine-Grained Authorization."
+6. [Oso][oso]. "Authorization as a Service."
+
+[zanzibar]: https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/
+[spacetimedb]: https://spacetimedb.com
+[authzen]: https://openid.net/specs/authorization-api-1_0.html
+[spicedb]: https://authzed.com/spicedb
+[openfga]: https://openfga.dev
+[oso]: https://www.osohq.com
 
 ## Glossary
 
