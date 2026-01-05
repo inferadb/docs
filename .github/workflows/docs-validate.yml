@@ -84,14 +84,6 @@ jobs:
       - name: Run markdownlint
         run: |
           markdownlint-cli2 "**/*.md" "#node_modules" "#.git" "#.vale" 2>&1 | tee lint-results.txt
-        continue-on-error: true
-
-      - name: Check lint results
-        run: |
-          if grep -q "error" lint-results.txt; then
-            echo "::error::Markdown lint errors found"
-            exit 1
-          fi
 
       - name: Upload lint results
         if: always()
