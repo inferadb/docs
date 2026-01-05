@@ -1,0 +1,5 @@
+# Third-party Vale style packages
+.vale/styles/*/README.md
+
+# Node modules (if present)
+node_modules/

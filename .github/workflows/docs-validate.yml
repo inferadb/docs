@@ -10,6 +10,7 @@ on:
       - "**/*.md"
       - "**/*.mdx"
       - ".markdownlint.yaml"
+      - ".markdownlintignore"
       - ".cspell/**"
       - ".vale.ini"
       - ".vale/**"
@@ -22,6 +23,7 @@ on:
       - "**/*.md"
       - "**/*.mdx"
       - ".markdownlint.yaml"
+      - ".markdownlintignore"
       - ".cspell/**"
       - ".vale.ini"
       - ".vale/**"
@@ -81,7 +83,7 @@ jobs:
 
       - name: Run markdownlint
         run: |
-          markdownlint-cli2 "**/*.md" "#node_modules" "#.git" 2>&1 | tee lint-results.txt
+          markdownlint-cli2 "**/*.md" "#node_modules" "#.git" "#.vale" 2>&1 | tee lint-results.txt
         continue-on-error: true
 
       - name: Check lint results
