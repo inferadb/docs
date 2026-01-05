@@ -19,7 +19,6 @@ Deployment documentation lives in the [deploy repository](https://github.com/inf
 
 | Directory      | Description                          |
 | -------------- | ------------------------------------ |
-| `deployment/`  | Kubernetes and infrastructure guides |
 | `whitepapers/` | Technical publications               |
 | `templates/`   | RFC template and style guide         |
 | `rfcs/`        | Feature proposals (use template)     |
