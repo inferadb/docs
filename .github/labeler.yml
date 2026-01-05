@@ -1,6 +1,6 @@
 # Labeler configuration
 # See: https://github.com/actions/labeler
-# Labels must match those defined in .github/maintenance/labels.sh
+# Labels must match those defined in repos.json
 
 # Documentation areas
 area/docs:
@@ -22,6 +22,14 @@ area/architecture:
           - "**/architecture/**/*"
           - "**/design/**/*"
 
+# Deployment documentation
+area/deployment:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/deployment/**/*"
+          - "**/deploy/**/*"
+          - "**/operations/**/*"
+
 # RFCs
 area/rfcs:
   - changed-files:
@@ -35,9 +43,6 @@ area/whitepapers:
       - any-glob-to-any-file:
           - "**/whitepapers/**/*"
           - "**/whitepaper/**/*"
-
-# Deployment documentation (now in deploy repo)
-# area/deployment label no longer used - deployment docs moved to inferadb/deploy
 
 # API documentation
 area/api:
