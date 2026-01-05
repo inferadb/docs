@@ -4,6 +4,9 @@
     <p>Technical specifications, deployment guides, and design proposals</p>
 </div>
 
+> [!IMPORTANT]
+> Under active development. Not production-ready.
+
 Most documentation lives within component repositories:
 
 - **[engine/](https://github.com/inferadb/engine/tree/main/docs)** — Engine docs (API, IPL, architecture)
