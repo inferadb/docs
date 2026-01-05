@@ -17,7 +17,7 @@ This guide establishes consistent conventions for all InferaDB documentation acr
 
 Use **kebab-case** for all documentation files:
 
-```
+```text
 getting-started.md
 audit-logs.md
 local-k8s-testing.md
@@ -27,7 +27,7 @@ local-k8s-testing.md
 
 Product names and proper nouns retain their original casing:
 
-```
+```text
 OpenFGA.md
 SpiceDB.md
 InferaDB.md
@@ -192,7 +192,7 @@ Do not use plaintext ASCII diagrams with box-drawing characters:
 
 Use plaintext for directory trees and simple file listings:
 
-```
+```text
 docs/
 ├── templates/
 │   └── style-guide.md
@@ -252,7 +252,7 @@ Additional settings.
 
 ### Good File Organization
 
-```
+```text
 docs/
 ├── architecture/
 │   └── system-overview.md

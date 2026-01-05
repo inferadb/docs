@@ -1,5 +1,5 @@
 <div align="center">
-    <p><a href="https://inferadb.com"><img src=".github/inferadb.png" width="100" /></a></p>
+    <p><a href="https://inferadb.com"><img src=".github/inferadb.png" width="100" alt="InferaDB Logo" /></a></p>
     <h1>InferaDB Documentation</h1>
     <p>Technical specifications, deployment guides, and design proposals</p>
 </div>
