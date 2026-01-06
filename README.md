@@ -31,3 +31,12 @@ Deployment documentation lives in the [deploy repository](https://github.com/inf
 1. Copy [templates/rfc-template.md](templates/rfc-template.md) to `rfcs/XXXX-title.md`
 2. Follow the [Style Guide](templates/style-guide.md)
 3. Submit a pull request
+
+## License
+
+Licensed under either of:
+
+- [Apache License, Version 2.0](LICENSE-APACHE)
+- [MIT License](LICENSE-MIT)
+
+at your option.
