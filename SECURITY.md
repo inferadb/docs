@@ -42,14 +42,14 @@ We follow [coordinated vulnerability disclosure](https://en.wikipedia.org/wiki/C
 
 Security issues we're interested in include:
 
-- Documentation that could lead users to insecure configurations
-- Incorrect security guidance
-- Exposed secrets or credentials in examples
+- Test fixtures that could expose security vulnerabilities
+- Insecure test patterns that might be copied
+- Credential exposure in test configurations
 
 ## Out of Scope
 
-- Typos or formatting issues
-- Suggestions for additional security documentation
+- Vulnerabilities in test dependencies
+- Issues that only affect test environments
 
 ## Security Updates
 
