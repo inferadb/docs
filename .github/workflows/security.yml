@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+#
+# Security workflow for docs repository
+# Since this is a documentation-only repository with no dependencies,
+# there are no security scans to run. This workflow provides a consistent
+# Security Summary job for branch protection rules.
+
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs for PRs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # Placeholder job - docs has no dependencies to scan
+  # This exists to maintain consistent workflow structure across repos
+  no-dependencies:
+    name: No Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Skip security scan
+        run: |
+          echo "This is a documentation-only repository with no dependencies."
+          echo "No security scans required."
+
+  # Security scan summary - provides consistent status check for branch protection
+  security-summary:
+    name: Security Summary
+    needs: [no-dependencies]
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Check security scan results
+        env:
+          NO_DEPS_RESULT: ${{ needs.no-dependencies.result }}
+        run: |
+          echo "## Security Scan Results"
+          echo ""
+          echo "| Check | Status |"
+          echo "|-------|--------|"
+          echo "| Dependencies | $NO_DEPS_RESULT (none to scan) |"
+          echo ""
+          echo "This is a documentation-only repository."
+          echo "No package dependencies or code to scan for vulnerabilities."
+          echo ""
+
+          # Fail if the placeholder job failed (shouldn't happen)
+          if [[ "$NO_DEPS_RESULT" != "success" && "$NO_DEPS_RESULT" != "skipped" ]]; then
+            echo "Unexpected failure in security workflow"
+            exit 1
+          fi
+
+          echo "All security checks passed!"
