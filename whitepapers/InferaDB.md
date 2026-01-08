@@ -4,21 +4,18 @@
 
 Modern applications demand fine-grained, contextual authorization systems capable
 of enforcing access control across distributed, multi-tenant, and multi-region
-environments. Traditional role-based (RBAC) and attribute-based (ABAC) systems
-fail to scale with the complexity of today's ecosystems, where relationships,
-hierarchies, and dynamic policies define access semantics.
+environments. Traditional RBAC and ABAC systems fail to scale when relationships,
+hierarchies, and dynamic policies define access.
 
-**InferaDB** is an inference-driven authorization database that unifies
+**InferaDB** is an inference-driven authorization database unifying
 relationship-based access control (ReBAC), logical policy reasoning, and
-standardized interoperability through the **AuthZEN** specification. It draws
-inspiration from **Google Zanzibar** [1], incorporates the execution and
-co-location principles of **SpacetimeDB** [2], and introduces a modular,
-reasoning-first approach to access control through deterministic policy
-inference and sandboxed logic execution.
+**AuthZEN** interoperability. It draws from **Google Zanzibar** [1] and
+**SpacetimeDB's** co-location model [2], adding deterministic policy inference
+and sandboxed logic execution.
 
-Built entirely in **Rust** for low-latency and strong consistency, with a
-**TypeScript** dashboard for developer accessibility, InferaDB delivers
-authorization that is **explainable, auditable, and composable** — by design.
+Built in **Rust** for low latency and strong consistency, with a **TypeScript**
+dashboard, InferaDB delivers **explainable, auditable, composable**
+authorization — by design.
 
 ## Executive Summary
 
@@ -41,10 +38,10 @@ InferaDB addresses three critical challenges in modern authorization:
 
 ## Motivation
 
-Authorization is one of the most critical yet under-engineered components of
-modern distributed systems. Developers often hardcode access rules, deploy
-unverified policy code, or rely on brittle role-based systems that collapse
-under the complexity of real-world resource graphs. Common challenges include:
+Authorization is critical yet under-engineered in distributed systems.
+Developers hardcode access rules, deploy unverified policies, or rely on
+brittle role-based systems that break under real-world resource graphs. Common
+challenges include:
 
 - Inconsistent authorization logic across services.
 - Poor visibility and auditability of decisions.
@@ -57,7 +54,7 @@ relationships and logical inferences, not just static roles or attributes.
 
 ## Design Philosophy
 
-The design of InferaDB is guided by five core principles:
+Five principles guide InferaDB's design:
 
 | Principle                        | Description                                                                                                                                                     |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -138,8 +135,8 @@ graph TD
 ```
 
 Each **PDP cell** operates autonomously with local data and computation,
-reducing cross-region latency while preserving strong consistency through
-causally ordered replication.
+reducing cross-region latency while preserving consistency through causal
+replication.
 
 ## Infera Policy Language (IPL)
 
@@ -178,9 +175,9 @@ permission view = viewer or (is_public == true and time_now < resource.expiry)
 
 ## WASM Policy Modules
 
-While declarative policies cover most authorization logic, real-world access
-control often depends on **contextual or domain-specific logic** — such as IP
-ranges, subscription tiers, workflow states, or compliance rules.
+Declarative policies cover most authorization logic, but real-world access
+control often requires **domain-specific checks** — IP ranges, subscription
+tiers, workflow states, or compliance rules.
 
 InferaDB supports **WASM Policy Modules**: sandboxed, tenant-scoped logic
 extensions that execute in-process within each PDP cell. Each module is:
@@ -225,10 +222,10 @@ consistency and security guarantees.
 
 ## Consistency Model
 
-Authorization systems face a fundamental tension: **strong consistency** ensures
-correct access decisions, but **global coordination** introduces latency.
-InferaDB resolves this through a carefully designed consistency model that
-prioritizes correctness while enabling low-latency reads.
+Authorization systems face a tension: **strong consistency** ensures correct
+decisions, but **global coordination** adds latency. InferaDB resolves this
+with a consistency model prioritizing correctness while enabling low-latency
+reads.
 
 ### The New Enemy Problem
 
@@ -268,9 +265,8 @@ This design enables **read-your-writes consistency** without global coordination
 
 ## Scalability and Performance
 
-InferaDB achieves high throughput and low latency through architectural
-decisions that co-locate computation with data and minimize cross-region
-coordination.
+InferaDB achieves high throughput and low latency by co-locating computation
+with data and minimizing cross-region coordination.
 
 ### Performance Characteristics
 
@@ -306,9 +302,8 @@ hashing. Large tenants can be further sharded by namespace or resource type.
 
 ## Security Model
 
-InferaDB is designed with a **zero-trust architecture** where every component
-assumes compromise of adjacent systems. Security is not an add-on—it's
-foundational to the design.
+InferaDB uses a **zero-trust architecture**: every component assumes adjacent
+systems are compromised. Security is foundational, not an add-on.
 
 ### Threat Model
 
@@ -424,9 +419,8 @@ inferadb/
 
 ## Comparison with Alternatives
 
-The authorization landscape includes several mature solutions. InferaDB
-differentiates through its combination of inference-based reasoning, standards
-compliance, and extensibility.
+Several mature authorization solutions exist. InferaDB differentiates with
+inference-based reasoning, standards compliance, and extensibility.
 
 | Capability          | InferaDB                 | SpiceDB                          | OpenFGA           | Oso                  | Cerbos          |
 | ------------------- | ------------------------ | -------------------------------- | ----------------- | -------------------- | --------------- |
@@ -446,12 +440,11 @@ compliance, and extensibility.
 
 ## Conclusion
 
-InferaDB represents a next-generation approach to authorization — where policies
-are logic, decisions are proofs, and relationships form the foundation of
-access reasoning. By combining the consistency of Zanzibar, the interoperability
-of AuthZEN, and the composability of WASM-based modules, InferaDB establishes a
-new standard for trust, transparency, and developer experience in distributed
-access control.
+InferaDB represents next-generation authorization — policies as logic, decisions
+as proofs, relationships as the foundation of access reasoning. Combining
+Zanzibar's consistency, AuthZEN interoperability, and WASM composability,
+InferaDB sets a new standard for trust, transparency, and developer experience
+in distributed access control.
 
 > **Authorize by Reason, at Scale.**
 

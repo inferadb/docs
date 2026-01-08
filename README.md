@@ -11,12 +11,11 @@
 > [!IMPORTANT]
 > Under active development. Not production-ready.
 
-Most documentation lives within component repositories:
+Component documentation:
 
-- **[engine/](https://github.com/inferadb/engine/tree/main/docs)** — Engine docs (API, IPL, architecture)
-- **[control/](https://github.com/inferadb/control/tree/main/docs)** — Control docs (authentication, entities)
-
-Deployment documentation lives in the [deploy repository](https://github.com/inferadb/deploy/tree/main/docs).
+- **[engine/](https://github.com/inferadb/engine/tree/main/docs)** — API, IPL, architecture
+- **[control/](https://github.com/inferadb/control/tree/main/docs)** — Authentication, entities
+- **[deploy/](https://github.com/inferadb/deploy/tree/main/docs)** — Deployment guides
 
 ## Whitepapers
 
@@ -38,13 +37,8 @@ Deployment documentation lives in the [deploy repository](https://github.com/inf
 
 ## Community
 
-Join us on [Discord](https://discord.gg/inferadb) to discuss InferaDB, get help with your projects, and connect with other developers. Whether you have questions, want to share what you're building, or are interested in contributing, we'd love to have you!
+Join our [Discord](https://discord.gg/inferadb) to discuss InferaDB, get help, or contribute.
 
 ## License
 
-Licensed under either of:
-
-- [Apache License, Version 2.0](LICENSE-APACHE)
-- [MIT License](LICENSE-MIT)
-
-at your option.
+Dual-licensed under [MIT](LICENSE-MIT) or [Apache 2.0](LICENSE-APACHE).
