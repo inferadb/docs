@@ -38,10 +38,10 @@ on:
         default: "false"
         type: boolean
 
-# Cancel in-progress runs for PRs, queue for main
+# Cancel in-progress runs when new commits are pushed
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 # Minimal permissions - principle of least privilege
 permissions:
