@@ -11,7 +11,7 @@
 > [!IMPORTANT]
 > Under active development. Not production-ready.
 
-Component documentation:
+Components:
 
 - **[engine/](https://github.com/inferadb/engine/tree/main/docs)** — API, IPL, architecture
 - **[control/](https://github.com/inferadb/control/tree/main/docs)** — Authentication, entities
@@ -37,7 +37,7 @@ Component documentation:
 
 ## Community
 
-Join our [Discord](https://discord.gg/inferadb) to discuss InferaDB, get help, or contribute.
+Join us on [Discord](https://discord.gg/inferadb) for questions, discussions, and contributions.
 
 ## License
 
