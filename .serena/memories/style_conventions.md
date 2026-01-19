@@ -68,7 +68,7 @@ Optional sections:
 Always capitalize correctly:
 - InferaDB (not inferadb, Inferadb)
 - GitHub, Kubernetes, Docker, Rust, TypeScript, JavaScript
-- WebAssembly, WASM, FoundationDB, PostgreSQL, Tailscale
+- WebAssembly, WASM, PostgreSQL, Tailscale
 
 ## Allowed HTML Elements
 - `div`, `p`, `a`, `img`, `br`, `h1`, `details`, `summary`, `kbd`, `sub`, `sup`

@@ -289,7 +289,7 @@ hashing. Large tenants can be further sharded by namespace or resource type.
 
 1. **L1 (in-process):** Hot tuples and policy definitions cached per-cell.
 2. **L2 (distributed):** Cross-cell cache for frequently accessed data.
-3. **L3 (storage):** FoundationDB provides durable, strongly consistent storage.
+3. **L3 (storage):** Ledger provides durable, strongly consistent storage with cryptographic verification.
 
 ### Scaling Mechanisms
 
@@ -395,7 +395,7 @@ paths, and analyze decision traces in real time.
 ### Local Development
 
 - **Docker Compose** or **Tilt** for rapid iteration.
-- Local FoundationDB for tuple storage.
+- Local Ledger for tuple storage.
 - Hot reload of dashboard and control containers.
 
 ### Production
@@ -428,7 +428,7 @@ inference-based reasoning, standards compliance, and extensibility.
 | **AuthZEN Support** | Native                   | Via adapter                      | Via adapter       | No                   | No              |
 | **Custom Logic**    | WASM modules             | Limited                          | Limited           | Polar rules          | CEL expressions |
 | **Consistency**     | Revision tokens          | ZedTokens                        | Tuples versioning | Application-level    | Stateless       |
-| **Storage**         | FoundationDB             | CockroachDB, Spanner, PostgreSQL | PostgreSQL, MySQL | In-memory / External | Stateless       |
+| **Storage**         | Ledger (Raft consensus)  | CockroachDB, Spanner, PostgreSQL | PostgreSQL, MySQL | In-memory / External | Stateless       |
 | **Multi-tenancy**   | Native isolation         | Schema-based                     | Store-based       | Application-level    | Policy bundles  |
 
 ### When to Choose InferaDB

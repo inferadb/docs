@@ -38,8 +38,6 @@ swap:
   'AUTHZEN': 'AuthZEN'
 
   # Infrastructure
-  'foundationdb': 'FoundationDB'
-  'Foundationdb': 'FoundationDB'
   'kubernetes': 'Kubernetes'
   'KUBERNETES': 'Kubernetes'
   'tailscale': 'Tailscale'

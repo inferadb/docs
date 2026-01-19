@@ -40,6 +40,6 @@ Component documentation lives in respective repositories:
 ## Key Technologies Mentioned
 - Rust (primary language for InferaDB)
 - Praxis (Infera Policy Language - IPL)
-- FoundationDB, PostgreSQL (database comparisons)
+- PostgreSQL (database comparisons)
 - Kubernetes, Docker (deployment)
 - Mermaid (diagrams)

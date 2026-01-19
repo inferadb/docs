@@ -185,7 +185,6 @@ MD044:
     - "JavaScript"
     - "WebAssembly"
     - "WASM"
-    - "FoundationDB"
     - "PostgreSQL"
     - "Tailscale"
   code_blocks: false

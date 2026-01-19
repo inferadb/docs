@@ -41,7 +41,7 @@ validate_file_naming() {
     log_info "Validating file naming conventions..."
 
     # Product names that are exceptions to kebab-case
-    local product_names="InferaDB|OpenFGA|SpiceDB|AuthZed|FoundationDB|Tailscale|PostgreSQL|CockroachDB|GitHub|README|CHANGELOG|LICENSE|CONTRIBUTING|SECURITY|CODEOWNERS"
+    local product_names="InferaDB|OpenFGA|SpiceDB|AuthZed|Tailscale|PostgreSQL|CockroachDB|GitHub|README|CHANGELOG|LICENSE|CONTRIBUTING|SECURITY|CODEOWNERS"
 
     # Find all markdown files
     while IFS= read -r -d '' file; do
